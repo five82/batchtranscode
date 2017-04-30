@@ -48,7 +48,14 @@ fun_transcode () {
   inputvcodec=$(/app/ffprobe -v error -select_streams v:0 -show_entries stream=codec_name -of default=nokey=1:noprint_wrappers=1 "${input}")
   eval $(/app/ffprobe -v error -of flat=s=_ -select_streams v:0 -show_entries stream=width "${input}")
   width=${streams_stream_0_width}
-  vidcrop=$(/app/ffmpeg -ss "${cropscanstart}" -i "${input}" -f matroska -t "${cropscanlength}" -an -vf cropdetect=24:16:0 -y -crf 51 -preset ultrafast /dev/null 2>&1 | grep -o crop=.* | sort -bh | uniq -c | sort -bh | tail -n1 | grep -o crop=.*)
+
+  # Crop black bars
+  if [ ${cropblackbars} == "true" ]; then
+    vidcrop=$(/app/ffmpeg -ss "${cropscanstart}" -i "${input}" -f matroska -t "${cropscanlength}" -an -vf cropdetect=24:16:0 -y -crf 51 -preset ultrafast /dev/null 2>&1 | grep -o crop=.* | sort -bh | uniq -c | sort -bh | tail -n1 | grep -o crop=.*)
+  else
+    # Don't crop
+    vidcrop="crop=in_w:in_h"
+  fi
 
   # Determine output file name
   inputfilename=$(basename "${input}")
