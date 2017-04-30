@@ -69,7 +69,6 @@ PATH="/ffmpeg/bin:$PATH" PKG_CONFIG_PATH="/ffmpeg/ffmpeg_build/lib/pkgconfig" ./
 --enable-ffprobe \
 --disable-ffserver \
 --enable-gpl \
---enable-nonfree \
 --enable-libx264 \
 --enable-libx265 && \
 make && \
