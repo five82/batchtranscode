@@ -115,7 +115,8 @@ ENV encoder=x264 \
     hdcrf=20 \
     sdcrf=20 \
     preset=veryfast \
-    cropscan=600 \
+    cropscanstart=600 \
+    cropscanlength=120 \
     slackurl=https://127.0.0.1
 
 # Run transcode.sh when the container launches
