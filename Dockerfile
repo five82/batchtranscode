@@ -1,5 +1,5 @@
-# Use Ubuntu 17.04 as a base image
-FROM ubuntu:17.04
+# Use Ubuntu 16.04 as a base image
+FROM ubuntu:16.04
 
 # Set the working directory to /app
 WORKDIR /app
@@ -39,7 +39,7 @@ mkdir -p /input /output /ffmpeg/ffmpeg_sources && \
 
 # Compile and install ffmpeg and ffprobe
 cd /ffmpeg/ffmpeg_sources && \
-git clone --depth=1 git://git.videolan.org/x264 && \
+git clone -b stable --depth=1 git://git.videolan.org/x264 && \
 hg clone https://bitbucket.org/multicoreware/x265 && \
 git clone --depth=1 https://github.com/FFmpeg/FFmpeg.git ffmpeg && \
 
