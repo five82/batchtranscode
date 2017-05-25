@@ -1,5 +1,5 @@
-# Use Ubuntu 16.04 as a base image
-FROM ubuntu:16.04
+# Use Ubuntu 17.04 as a base image
+FROM ubuntu:17.04
 
 # Set the working directory to /app
 WORKDIR /app
