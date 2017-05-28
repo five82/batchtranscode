@@ -33,7 +33,8 @@ apt-get install -y \
   git \
   mercurial \
   wget \
-  cmake && \
+  cmake \
+  yasm && \
 
 # Setup directories
 mkdir -p /input /output /ffmpeg/ffmpeg_sources && \
@@ -110,7 +111,8 @@ apt-get remove -y \
   git \
   mercurial \
   wget \
-  cmake && \
+  cmake \
+  yasm && \
 apt-get -y autoremove && \
 apt-get clean && \
 
