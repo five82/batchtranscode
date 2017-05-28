@@ -31,17 +31,23 @@ apt-get install -y \
   texinfo \
   zlib1g-dev \
   git mercurial \
-  cmake \
-  yasm && \
+  cmake && \
 
 # Setup directories
 mkdir -p /input /output /ffmpeg/ffmpeg_sources && \
 
 # Compile and install ffmpeg and ffprobe
 cd /ffmpeg/ffmpeg_sources && \
-git clone -b stable --depth=1 git://git.videolan.org/x264 && \
+wget http://www.nasm.us/pub/nasm/releasebuilds/2.13.01/nasm-2.13.01.tar.xz && \
+tar -xf nasm-2.13.01.tar.xz && \
+git clone --depth=1 git://git.videolan.org/x264 && \
 hg clone https://bitbucket.org/multicoreware/x265 && \
 git clone --depth=1 https://github.com/FFmpeg/FFmpeg.git ffmpeg && \
+
+cd /ffmpeg/ffmpeg_sources/nasm-2.13.01 && \
+./configure --prefix="/ffmpeg/ffmpeg_build" --bindir="/ffmpeg/bin" && \
+make && \
+make install && \
 
 cd /ffmpeg/ffmpeg_sources/x264 && \
 PATH="/ffmpeg/bin:$PATH" ./configure --prefix="/ffmpeg/ffmpeg_build" --bindir="/ffmpeg/bin" --enable-pic --enable-shared --enable-static && \
@@ -101,8 +107,7 @@ apt-get remove -y \
   zlib1g-dev \
   git \
   mercurial \
-  cmake \
-  yasm && \
+  cmake && \
 apt-get -y autoremove && \
 apt-get clean && \
 
