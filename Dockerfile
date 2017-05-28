@@ -30,7 +30,9 @@ apt-get install -y \
   pkg-config \
   texinfo \
   zlib1g-dev \
-  git mercurial \
+  git \
+  mercurial \
+  wget \
   cmake && \
 
 # Setup directories
@@ -107,6 +109,7 @@ apt-get remove -y \
   zlib1g-dev \
   git \
   mercurial \
+  wget \
   cmake && \
 apt-get -y autoremove && \
 apt-get clean && \
