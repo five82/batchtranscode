@@ -10,7 +10,6 @@ ADD . /app
 # Update and install dependencies
 RUN \
 
-cat "*** INSTALLING UBUNTU PACKAGE DEPENDENCIES ***" && \
 apt-get update && \
 apt-get install -y \
   curl \
@@ -38,41 +37,32 @@ apt-get install -y \
   yasm && \
 
 # Setup directories
-cat "*** CREATING REQUIRED DIRECTORIES ***" && \
 mkdir -p /input /output /ffmpeg/ffmpeg_sources && \
 
 # Compile and install ffmpeg and ffprobe
-cat "*** DOWNLOADING AND EXTRACTING NASM ***" && \
 cd /ffmpeg/ffmpeg_sources && \
 wget http://www.nasm.us/pub/nasm/releasebuilds/2.13.01/nasm-2.13.01.tar.xz && \
 tar -xf nasm-2.13.01.tar.xz && \
-cat "*** CLONING X264 ***" && \
 git clone --depth=1 git://git.videolan.org/x264 && \
-cat "*** CLONING X265 ***" && \
 hg clone https://bitbucket.org/multicoreware/x265 && \
-cat "*** CLONING FFMPEG ***" && \
 git clone --depth=1 https://github.com/FFmpeg/FFmpeg.git ffmpeg && \
 
-cat "*** COMPILING NASM ***" && \
 cd /ffmpeg/ffmpeg_sources/nasm-2.13.01 && \
 ./configure --prefix="/ffmpeg/ffmpeg_build" --bindir="/ffmpeg/bin" && \
 make && \
 make install && \
 
-cat "*** COMPILING X264 ***" && \
 cd /ffmpeg/ffmpeg_sources/x264 && \
 PATH="/ffmpeg/bin:$PATH" ./configure --prefix="/ffmpeg/ffmpeg_build" --bindir="/ffmpeg/bin" --enable-pic --enable-shared --enable-static && \
 PATH="/ffmpeg/bin:$PATH" make && \
 make install && \
 make distclean && \
 
-cat "*** COMPILING X265 ***" && \
 cd /ffmpeg/ffmpeg_sources/x265/build/linux && \
 PATH="/ffmpeg/bin:$PATH" cmake -G "Unix Makefiles" -DCMAKE_INSTALL_PREFIX="/ffmpeg/ffmpeg_build" -DENABLE_SHARED:bool=off ../../source && \
 make && \
 make install && \
 
-cat "*** COMPILING FFMPEG ***" && \
 cd /ffmpeg/ffmpeg_sources/ffmpeg && \
 PATH="/ffmpeg/bin:$PATH" PKG_CONFIG_PATH="/ffmpeg/ffmpeg_build/lib/pkgconfig" ./configure \
 --prefix="/ffmpeg/ffmpeg_build" \
@@ -96,13 +86,10 @@ make distclean && \
 hash -r && \
 
 # Copy ffmpeg and ffprobe to app directory
-cat "*** COPYING FFMPEG DIRECTORIES TO APP DIR ***" && \
 cp /ffmpeg/bin/ff* /app/ && \
 
 # Clean up directories and packages after compilation
-cat "*** REMOVING FFMPEG DIRECTORY ***" && \
 rm -rf /ffmpeg && \
-cat "*** UNINSTALLING UBUNTU PACKAGE DEPENDENCIES ***" && \
 apt-get remove -y \
   autoconf \
   automake \
