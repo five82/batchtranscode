@@ -44,7 +44,7 @@ curl -O http://www.nasm.us/pub/nasm/releasebuilds/2.13.01/nasm-2.13.01.tar.xz &&
 tar -xf nasm-2.13.01.tar.xz && \
 git clone --depth=1 git://git.videolan.org/x264 && \
 hg clone https://bitbucket.org/multicoreware/x265 && \
-git clone --depth=1 https://github.com/FFmpeg/FFmpeg.git ffmpeg && \
+git clone --depth=1 -b release/3.3 https://github.com/FFmpeg/FFmpeg.git ffmpeg && \
 
 cd /ffmpeg/ffmpeg_sources/nasm-2.13.01 && \
 ./autogen.sh && \
