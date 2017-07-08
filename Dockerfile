@@ -36,7 +36,7 @@ apt-get install -y \
   yasm && \
 
 # Setup directories
-mkdir -p /input /output /ffmpeg/ffmpeg_sources && \
+mkdir -p /input /output /ffmpeg/ffmpeg_sources /ffmpeg/bin && \
 
 # Compile and install ffmpeg and ffprobe
 cd /ffmpeg/ffmpeg_sources && \
@@ -47,8 +47,9 @@ hg clone https://bitbucket.org/multicoreware/x265 && \
 git clone --depth=1 https://github.com/FFmpeg/FFmpeg.git ffmpeg && \
 
 cd /ffmpeg/ffmpeg_sources/nasm-2.13.01 && \
-./configure --prefix="/ffmpeg/ffmpeg_build" --bindir="/ffmpeg/bin" && \
-make && \
+./autogen.sh && \
+PATH="/ffmpeg/bin:$PATH" ./configure --prefix="/ffmpeg/ffmpeg_build" --bindir="/ffmpeg/bin" && \
+PATH="/ffmpeg/bin:$PATH" make && \
 make install && \
 
 cd /ffmpeg/ffmpeg_sources/x264 && \
