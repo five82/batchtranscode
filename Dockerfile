@@ -32,7 +32,6 @@ apt-get install -y \
   zlib1g-dev \
   git \
   mercurial \
-  wget \
   cmake \
   yasm && \
 
@@ -41,7 +40,7 @@ mkdir -p /input /output /ffmpeg/ffmpeg_sources && \
 
 # Compile and install ffmpeg and ffprobe
 cd /ffmpeg/ffmpeg_sources && \
-wget http://www.nasm.us/pub/nasm/releasebuilds/2.13.01/nasm-2.13.01.tar.xz && \
+curl -O http://www.nasm.us/pub/nasm/releasebuilds/2.13.01/nasm-2.13.01.tar.xz && \
 tar -xf nasm-2.13.01.tar.xz && \
 git clone --depth=1 git://git.videolan.org/x264 && \
 hg clone https://bitbucket.org/multicoreware/x265 && \
@@ -110,7 +109,6 @@ apt-get remove -y \
   zlib1g-dev \
   git \
   mercurial \
-  wget \
   cmake \
   yasm && \
 apt-get -y autoremove && \
