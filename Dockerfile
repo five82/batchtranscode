@@ -119,10 +119,10 @@ apt-get clean && \
 chmod +x /app/transcode.sh
 
 # Environment variables
-ENV encoder=x264 \
-    hdcrf=20 \
-    sdcrf=20 \
-    preset=veryfast \
+ENV encoder=x265 \
+    hdcrf=21 \
+    sdcrf=21 \
+    preset=medium \
     cropblackbars=true \
     cropscanstart=600 \
     cropscanlength=120 \
