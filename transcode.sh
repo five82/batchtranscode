@@ -111,7 +111,7 @@ fun_transcode () {
       -vf ${vidcrop} \
       -map 0:0 -map 0:1 \
       -c:v ${encoderlib} -preset ${preset} ${encoderparams} crf=${crf} \
-      -c:a:0 aac -b:a:0 ${abitrate} \
+      -c:a:0 ${audioencoder} -b:a:0 ${abitrate} \
       ${output}
     fun_slackpost "Finished encode: $inputfilename" "INFO"
   elif [ ${atracks} == 1 ] && [ ${forced} ]; then
@@ -124,7 +124,7 @@ fun_transcode () {
       -i ${input} -map 0:0 -map 0:1 -map 0:2 \
       -vf ${vidcrop} \
       -c:v ${encoderlib} -preset ${preset} ${encoderparams} crf=${crf} \
-      -c:a:0 aac -b:a:0 ${abitrate} \
+      -c:a:0 ${audioencoder} -b:a:0 ${abitrate} \
       -c:s:0 copy -disposition:s:0 +default+forced \
       ${output}
     fun_slackpost "Finished encode: $inputfilename" "INFO"
@@ -139,8 +139,8 @@ fun_transcode () {
       -vf ${vidcrop} \
       -map 0:0 -map 0:1 -map 0:2 \
       -c:v ${encoderlib} -preset ${preset} ${encoderparams} crf=${crf} \
-      -c:a:0 aac -b:a:0 ${abitrate} \
-      -c:a:1 aac -b:a:1 128k \
+      -c:a:0 ${audioencoder} -b:a:0 ${abitrate} \
+      -c:a:1 ${audioencoder} -b:a:1 128k \
       ${output}
     fun_slackpost "Finished encode: $inputfilename" "INFO"
   elif [ ${atracks} == 2 ] && [ ${forced} ]; then
@@ -154,8 +154,8 @@ fun_transcode () {
       -vf ${vidcrop} \
       -map 0:0 -map 0:1 -map 0:2 -map 0:3 \
       -c:v ${encoderlib} -preset ${preset} ${encoderparams} crf=${crf} \
-      -c:a:0 aac -b:a:0 ${abitrate} \
-      -c:a:1 aac -b:a:1 128k \
+      -c:a:0 ${audioencoder} -b:a:0 ${abitrate} \
+      -c:a:1 ${audioencoder} -b:a:1 128k \
       -c:s:0 copy -disposition:s:0 +default+forced \
       ${output}
     fun_slackpost "Finished encode: $inputfilename" "INFO"
@@ -170,9 +170,9 @@ fun_transcode () {
       -vf ${vidcrop} \
       -map 0:0 -map 0:1 -map 0:2 -map 0:3 \
       -c:v ${encoderlib} -preset ${preset} ${encoderparams} crf=${crf} \
-      -c:a:0 aac -b:a:0 ${abitrate} \
-      -c:a:1 aac -b:a:1 128k \
-      -c:a:2 aac -b:a:2 128k \
+      -c:a:0 ${audioencoder} -b:a:0 ${abitrate} \
+      -c:a:1 ${audioencoder} -b:a:1 128k \
+      -c:a:2 ${audioencoder} -b:a:2 128k \
       ${output}
     fun_slackpost "Finished encode: $inputfilename" "INFO"
   elif [ ${atracks} == 3 ] && [ ${forced} ]; then
@@ -186,9 +186,9 @@ fun_transcode () {
       -vf ${vidcrop} \
       -map 0:0 -map 0:1 -map 0:2 -map 0:3 -map 0:4 \
       -c:v ${encoderlib} -preset ${preset} ${encoderparams} crf=${crf} \
-      -c:a:0 aac -b:a:0 ${abitrate} \
-      -c:a:1 aac -b:a:1 128k \
-      -c:a:2 aac -b:a:2 128k \
+      -c:a:0 ${audioencoder} -b:a:0 ${abitrate} \
+      -c:a:1 ${audioencoder} -b:a:1 128k \
+      -c:a:2 ${audioencoder} -b:a:2 128k \
       -c:s:0 copy -disposition:s:0 +default+forced \
       ${output}
     fun_slackpost "Finished encode: $inputfilename" "INFO"
@@ -203,10 +203,10 @@ fun_transcode () {
       -vf ${vidcrop} \
       -map 0:0 -map 0:1 -map 0:2 -map 0:3 -map 0:4 \
       -c:v ${encoderlib} -preset ${preset} ${encoderparams} crf=${crf} \
-      -c:a:0 aac -b:a:0 ${abitrate} \
-      -c:a:1 aac -b:a:1 128k \
-      -c:a:2 aac -b:a:2 128k \
-      -c:a:3 aac -b:a:3 128k \
+      -c:a:0 ${audioencoder} -b:a:0 ${abitrate} \
+      -c:a:1 ${audioencoder} -b:a:1 128k \
+      -c:a:2 ${audioencoder} -b:a:2 128k \
+      -c:a:3 ${audioencoder} -b:a:3 128k \
       ${output}
     fun_slackpost "Finished encode: $inputfilename" "INFO"
   elif [ ${atracks} == 4 ] && [ ${forced} ]; then
@@ -220,10 +220,10 @@ fun_transcode () {
       -vf ${vidcrop} \
       -map 0:0 -map 0:1 -map 0:2 -map 0:3 -map 0:4 -map 0:5 \
       -c:v ${encoderlib} -preset ${preset} ${encoderparams} crf=${crf} \
-      -c:a:0 aac -b:a:0 ${abitrate} \
-      -c:a:1 aac -b:a:1 128k \
-      -c:a:2 aac -b:a:2 128k \
-      -c:a:3 aac -b:a:3 128k \
+      -c:a:0 ${audioencoder} -b:a:0 ${abitrate} \
+      -c:a:1 ${audioencoder} -b:a:1 128k \
+      -c:a:2 ${audioencoder} -b:a:2 128k \
+      -c:a:3 ${audioencoder} -b:a:3 128k \
       -c:s:0 copy -disposition:s:0 +default+forced \
       ${output}
     fun_slackpost "Finished encode: $inputfilename" "INFO"
@@ -238,11 +238,11 @@ fun_transcode () {
       -vf ${vidcrop} \
       -map 0:0 -map 0:1 -map 0:2 -map 0:3 -map 0:4 -map 0:5 \
       -c:v ${encoderlib} -preset ${preset} ${encoderparams} crf=${crf} \
-      -c:a:0 aac -b:a:0 ${abitrate} \
-      -c:a:1 aac -b:a:1 128k \
-      -c:a:2 aac -b:a:2 128k \
-      -c:a:3 aac -b:a:3 128k \
-      -c:a:3 aac -b:a:4 128k \
+      -c:a:0 ${audioencoder} -b:a:0 ${abitrate} \
+      -c:a:1 ${audioencoder} -b:a:1 128k \
+      -c:a:2 ${audioencoder} -b:a:2 128k \
+      -c:a:3 ${audioencoder} -b:a:3 128k \
+      -c:a:4 ${audioencoder} -b:a:4 128k \
       ${output}
     fun_slackpost "Finished encode: $inputfilename" "INFO"
   elif [ ${atracks} == 5 ] && [ ${forced} ]; then
@@ -256,11 +256,11 @@ fun_transcode () {
       -vf ${vidcrop} \
       -map 0:0 -map 0:1 -map 0:2 -map 0:3 -map 0:4 -map 0:5 -map 0:6 \
       -c:v ${encoderlib} -preset ${preset} ${encoderparams} crf=${crf} \
-      -c:a:0 aac -b:a:0 ${abitrate} \
-      -c:a:1 aac -b:a:1 128k \
-      -c:a:2 aac -b:a:2 128k \
-      -c:a:3 aac -b:a:3 128k \
-      -c:a:3 aac -b:a:4 128k \
+      -c:a:0 ${audioencoder} -b:a:0 ${abitrate} \
+      -c:a:1 ${audioencoder} -b:a:1 128k \
+      -c:a:2 ${audioencoder} -b:a:2 128k \
+      -c:a:3 ${audioencoder} -b:a:3 128k \
+      -c:a:4 ${audioencoder} -b:a:4 128k \
       -c:s:0 copy -disposition:s:0 +default+forced \
       ${output}
     fun_slackpost "Finished encode: $inputfilename" "INFO"

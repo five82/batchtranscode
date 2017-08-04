@@ -120,6 +120,7 @@ chmod +x /app/transcode.sh
 
 # Environment variables
 ENV encoder=x265 \
+    audioencoder=aac \
     hdcrf=21 \
     sdcrf=21 \
     preset=medium \
