@@ -121,8 +121,9 @@ fun_transcode () {
     echo "You have selected 1 audio track, subtitles."
     fun_slackpost "Starting encode: $inputfilename" "INFO"
     /app/ffmpeg \
-      -i ${input} -map 0:0 -map 0:1 -map 0:2 \
+      -i ${input} \
       -vf ${vidcrop} \
+      -map 0:0 -map 0:1 -map 0:2 \
       -c:v ${encoderlib} -preset ${preset} ${encoderparams} crf=${crf} \
       -c:a:0 ${audioencoder} -b:a:0 ${abitrate} \
       -c:s:0 copy -disposition:s:0 +default+forced \

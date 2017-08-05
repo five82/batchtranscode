@@ -44,7 +44,7 @@ curl -O http://www.nasm.us/pub/nasm/releasebuilds/2.13.01/nasm-2.13.01.tar.xz &&
 tar -xf nasm-2.13.01.tar.xz && \
 git clone --depth=1 git://git.videolan.org/x264 && \
 hg clone https://bitbucket.org/multicoreware/x265 && \
-git clone --depth=1 -b release/3.3 https://github.com/FFmpeg/FFmpeg.git ffmpeg && \
+git clone --depth=1 https://github.com/FFmpeg/FFmpeg.git ffmpeg && \
 
 cd /ffmpeg/ffmpeg_sources/nasm-2.13.01 && \
 ./autogen.sh && \
@@ -53,7 +53,7 @@ PATH="/ffmpeg/bin:$PATH" make && \
 make install && \
 
 cd /ffmpeg/ffmpeg_sources/x264 && \
-PATH="/ffmpeg/bin:$PATH" ./configure --prefix="/ffmpeg/ffmpeg_build" --bindir="/ffmpeg/bin" --enable-pic --enable-shared --enable-static && \
+PATH="/ffmpeg/bin:$PATH" ./configure --prefix="/ffmpeg/ffmpeg_build" --bindir="/ffmpeg/bin" --enable-pic --enable-shared --enable-static --disable-opencl && \
 PATH="/ffmpeg/bin:$PATH" make && \
 make install && \
 make distclean && \
@@ -66,21 +66,18 @@ make install && \
 cd /ffmpeg/ffmpeg_sources/ffmpeg && \
 PATH="/ffmpeg/bin:$PATH" PKG_CONFIG_PATH="/ffmpeg/ffmpeg_build/lib/pkgconfig" ./configure \
 --prefix="/ffmpeg/ffmpeg_build" \
---extra-cflags="-I/ffmpeg/ffmpeg_build/include -static" \
---extra-cflags=--static \
---extra-ldflags="-L/ffmpeg/ffmpeg_build/lib -lm -static" \
---extra-version=static \
---bindir="/ffmpeg/bin" \
 --pkg-config-flags="--static" \
+--extra-cflags="-I/ffmpeg/ffmpeg_build/include -static" \
+--extra-ldflags="-L/ffmpeg/ffmpeg_build/lib -static" \
+--bindir="/ffmpeg/bin" \
 --enable-static \
 --disable-shared \
---disable-debug \
 --enable-ffprobe \
 --disable-ffserver \
 --enable-gpl \
 --enable-libx264 \
 --enable-libx265 && \
-make && \
+PATH="/ffmpeg/bin:$PATH" make && \
 make install && \
 make distclean && \
 hash -r && \
