@@ -42,13 +42,22 @@ mkdir -p /input /output /ffmpeg/ffmpeg_sources /ffmpeg/bin && \
 cd /ffmpeg/ffmpeg_sources && \
 curl -O http://www.nasm.us/pub/nasm/releasebuilds/2.13.01/nasm-2.13.01.tar.xz && \
 tar -xf nasm-2.13.01.tar.xz && \
+git clone https://github.com/xiph/opus.git && \
 git clone --depth=1 git://git.videolan.org/x264 && \
 hg clone https://bitbucket.org/multicoreware/x265 && \
 git clone --depth=1 https://github.com/FFmpeg/FFmpeg.git ffmpeg && \
+cd ffmpeg && \
+curl -O https://trac.ffmpeg.org/raw-attachment/ticket/5718/0001-libavcodec-libopusenc.c-patch-channel_layouts-back-i.patch && \
 
 cd /ffmpeg/ffmpeg_sources/nasm-2.13.01 && \
 ./autogen.sh && \
 PATH="/ffmpeg/bin:$PATH" ./configure --prefix="/ffmpeg/ffmpeg_build" --bindir="/ffmpeg/bin" && \
+PATH="/ffmpeg/bin:$PATH" make && \
+make install && \
+
+cd /ffmpeg/ffmpeg_sources/opus && \
+./autogen.sh && \
+./configure --prefix="/ffmpeg/ffmpeg_build" --disable-shared && \
 PATH="/ffmpeg/bin:$PATH" make && \
 make install && \
 
@@ -64,6 +73,9 @@ make && \
 make install && \
 
 cd /ffmpeg/ffmpeg_sources/ffmpeg && \
+# Apply patch to fix libopus channel mappings
+# See https://trac.ffmpeg.org/ticket/5718
+git apply 0001-libavcodec-libopusenc.c-patch-channel_layouts-back-i.patch && \
 PATH="/ffmpeg/bin:$PATH" PKG_CONFIG_PATH="/ffmpeg/ffmpeg_build/lib/pkgconfig" ./configure \
 --prefix="/ffmpeg/ffmpeg_build" \
 --pkg-config-flags="--static" \
@@ -75,6 +87,7 @@ PATH="/ffmpeg/bin:$PATH" PKG_CONFIG_PATH="/ffmpeg/ffmpeg_build/lib/pkgconfig" ./
 --enable-ffprobe \
 --disable-ffserver \
 --enable-gpl \
+--enable-libopus \
 --enable-libx264 \
 --enable-libx265 && \
 PATH="/ffmpeg/bin:$PATH" make && \
@@ -117,7 +130,7 @@ chmod +x /app/transcode.sh
 
 # Environment variables
 ENV encoder=x265 \
-    audioencoder=aac \
+    audioencoder=libopus \
     hdcrf=21 \
     sdcrf=21 \
     preset=medium \
