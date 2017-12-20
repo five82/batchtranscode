@@ -81,6 +81,7 @@ PATH="/ffmpeg/bin:$PATH" PKG_CONFIG_PATH="/ffmpeg/ffmpeg_build/lib/pkgconfig" ./
 --pkg-config-flags="--static" \
 --extra-cflags="-I/ffmpeg/ffmpeg_build/include -static" \
 --extra-ldflags="-L/ffmpeg/ffmpeg_build/lib -static" \
+--extra-libs="-lpthread -lm" \
 --bindir="/ffmpeg/bin" \
 --enable-static \
 --disable-shared \
