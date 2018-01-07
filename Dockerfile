@@ -10,6 +10,8 @@ ADD . /app
 # Update and install dependencies
 RUN \
 
+export MAKEFLAGS="-j4" && \
+
 apt-get update && \
 apt-get install -y \
   curl \
