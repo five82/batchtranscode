@@ -9,9 +9,7 @@ ADD . /app
 
 # Update and install dependencies
 RUN \
-
 export MAKEFLAGS="-j4" && \
-
 apt-get update && \
 apt-get install -y \
   curl \
@@ -36,10 +34,8 @@ apt-get install -y \
   mercurial \
   cmake \
   yasm && \
-
 # Setup directories
 mkdir -p /input /output /ffmpeg/ffmpeg_sources /ffmpeg/bin && \
-
 # Compile and install ffmpeg and ffprobe
 cd /ffmpeg/ffmpeg_sources && \
 curl -O http://www.nasm.us/pub/nasm/releasebuilds/2.13.01/nasm-2.13.01.tar.xz && \
@@ -50,7 +46,6 @@ hg clone https://bitbucket.org/multicoreware/x265 && \
 git clone --depth=1 https://github.com/FFmpeg/FFmpeg.git ffmpeg && \
 cd ffmpeg && \
 curl -O https://trac.ffmpeg.org/raw-attachment/ticket/5718/0001-libavcodec-libopusenc.c-patch-channel_layouts-back-i.patch && \
-
 cd /ffmpeg/ffmpeg_sources/nasm-2.13.01 && \
 ./autogen.sh && \
 PATH="/ffmpeg/bin:$PATH" ./configure \
@@ -58,7 +53,6 @@ PATH="/ffmpeg/bin:$PATH" ./configure \
 --bindir="/ffmpeg/bin" && \
 PATH="/ffmpeg/bin:$PATH" make && \
 make install && \
-
 cd /ffmpeg/ffmpeg_sources/opus && \
 ./autogen.sh && \
 ./configure \
@@ -66,7 +60,6 @@ cd /ffmpeg/ffmpeg_sources/opus && \
 --disable-shared && \
 PATH="/ffmpeg/bin:$PATH" make && \
 make install && \
-
 cd /ffmpeg/ffmpeg_sources/x264 && \
 PATH="/ffmpeg/bin:$PATH" ./configure \
 --prefix="/ffmpeg/ffmpeg_build" \
@@ -78,7 +71,6 @@ PATH="/ffmpeg/bin:$PATH" ./configure \
 PATH="/ffmpeg/bin:$PATH" make && \
 make install && \
 make distclean && \
-
 cd /ffmpeg/ffmpeg_sources/x265/build/linux && \
 PATH="/ffmpeg/bin:$PATH" cmake -G "Unix Makefiles" \
 -DCMAKE_INSTALL_PREFIX="/ffmpeg/ffmpeg_build" \
@@ -86,7 +78,6 @@ PATH="/ffmpeg/bin:$PATH" cmake -G "Unix Makefiles" \
 ../../source && \
 make && \
 make install && \
-
 cd /ffmpeg/ffmpeg_sources/ffmpeg && \
 # Apply patch to fix libopus channel mappings
 # See https://trac.ffmpeg.org/ticket/5718
@@ -109,10 +100,8 @@ PATH="/ffmpeg/bin:$PATH" make && \
 make install && \
 make distclean && \
 hash -r && \
-
 # Copy ffmpeg and ffprobe to app directory
 cp /ffmpeg/bin/ff* /app/ && \
-
 # Clean up directories and packages after compilation
 rm -rf /ffmpeg && \
 apt-get remove -y \
@@ -139,7 +128,6 @@ apt-get remove -y \
   yasm && \
 apt-get -y autoremove && \
 apt-get clean && \
-
 # Set transcode script as executable
 chmod +x /app/transcode.sh
 
