@@ -51,24 +51,37 @@ curl -O https://trac.ffmpeg.org/raw-attachment/ticket/5718/0001-libavcodec-libop
 
 cd /ffmpeg/ffmpeg_sources/nasm-2.13.01 && \
 ./autogen.sh && \
-PATH="/ffmpeg/bin:$PATH" ./configure --prefix="/ffmpeg/ffmpeg_build" --bindir="/ffmpeg/bin" && \
+PATH="/ffmpeg/bin:$PATH" ./configure \
+--prefix="/ffmpeg/ffmpeg_build" \
+--bindir="/ffmpeg/bin" && \
 PATH="/ffmpeg/bin:$PATH" make && \
 make install && \
 
 cd /ffmpeg/ffmpeg_sources/opus && \
 ./autogen.sh && \
-./configure --prefix="/ffmpeg/ffmpeg_build" --disable-shared && \
+./configure \
+--prefix="/ffmpeg/ffmpeg_build" \
+--disable-shared && \
 PATH="/ffmpeg/bin:$PATH" make && \
 make install && \
 
 cd /ffmpeg/ffmpeg_sources/x264 && \
-PATH="/ffmpeg/bin:$PATH" ./configure --prefix="/ffmpeg/ffmpeg_build" --bindir="/ffmpeg/bin" --enable-pic --enable-shared --enable-static --disable-opencl && \
+PATH="/ffmpeg/bin:$PATH" ./configure \
+--prefix="/ffmpeg/ffmpeg_build" \
+--bindir="/ffmpeg/bin" \
+--enable-pic \
+--enable-shared \
+--enable-static \
+--disable-opencl && \
 PATH="/ffmpeg/bin:$PATH" make && \
 make install && \
 make distclean && \
 
 cd /ffmpeg/ffmpeg_sources/x265/build/linux && \
-PATH="/ffmpeg/bin:$PATH" cmake -G "Unix Makefiles" -DCMAKE_INSTALL_PREFIX="/ffmpeg/ffmpeg_build" -DENABLE_SHARED:bool=off ../../source && \
+PATH="/ffmpeg/bin:$PATH" cmake -G "Unix Makefiles" \
+-DCMAKE_INSTALL_PREFIX="/ffmpeg/ffmpeg_build" \
+-DENABLE_SHARED:bool=off \
+../../source && \
 make && \
 make install && \
 
@@ -86,7 +99,6 @@ PATH="/ffmpeg/bin:$PATH" PKG_CONFIG_PATH="/ffmpeg/ffmpeg_build/lib/pkgconfig" ./
 --enable-static \
 --disable-shared \
 --enable-ffprobe \
---disable-ffserver \
 --enable-gpl \
 --enable-libopus \
 --enable-libx264 \
