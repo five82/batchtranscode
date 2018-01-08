@@ -37,6 +37,7 @@ apt-get install -y \
 # Setup directories
 mkdir -p /input /output /ffmpeg/ffmpeg_sources /ffmpeg/bin && \
 # Compile and install ffmpeg and ffprobe
+# Download source
 cd /ffmpeg/ffmpeg_sources && \
 curl -O http://www.nasm.us/pub/nasm/releasebuilds/2.13.01/nasm-2.13.01.tar.xz && \
 tar -xf nasm-2.13.01.tar.xz && \
@@ -46,6 +47,7 @@ hg clone https://bitbucket.org/multicoreware/x265 && \
 git clone --depth=1 https://github.com/FFmpeg/FFmpeg.git ffmpeg && \
 cd ffmpeg && \
 curl -O https://trac.ffmpeg.org/raw-attachment/ticket/5718/0001-libavcodec-libopusenc.c-patch-channel_layouts-back-i.patch && \
+# Compile nasm
 cd /ffmpeg/ffmpeg_sources/nasm-2.13.01 && \
 ./autogen.sh && \
 PATH="/ffmpeg/bin:$PATH" ./configure \
@@ -60,6 +62,7 @@ cd /ffmpeg/ffmpeg_sources/opus && \
 --disable-shared && \
 PATH="/ffmpeg/bin:$PATH" make && \
 make install && \
+# Compile x264
 cd /ffmpeg/ffmpeg_sources/x264 && \
 PATH="/ffmpeg/bin:$PATH" ./configure \
 --prefix="/ffmpeg/ffmpeg_build" \
@@ -71,13 +74,17 @@ PATH="/ffmpeg/bin:$PATH" ./configure \
 PATH="/ffmpeg/bin:$PATH" make && \
 make install && \
 make distclean && \
+# Compile x265
 cd /ffmpeg/ffmpeg_sources/x265/build/linux && \
 PATH="/ffmpeg/bin:$PATH" cmake -G "Unix Makefiles" \
 -DCMAKE_INSTALL_PREFIX="/ffmpeg/ffmpeg_build" \
 -DENABLE_SHARED:bool=off \
+# Enable 10 bit x265
+-DHIGH_BIT_DEPTH=on \
 ../../source && \
 make && \
 make install && \
+# Compile ffmpeg
 cd /ffmpeg/ffmpeg_sources/ffmpeg && \
 # Apply patch to fix libopus channel mappings
 # See https://trac.ffmpeg.org/ticket/5718
