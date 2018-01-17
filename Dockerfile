@@ -1,6 +1,18 @@
 # Use Ubuntu 16.04 as a base image
 FROM ubuntu:16.04
 
+# Environment variables
+ENV encoder=x265 \
+    audioencoder=libopus \
+    uhdcrf=21 \
+    hdcrf=21 \
+    sdcrf=21 \
+    preset=medium \
+    cropblackbars=true \
+    cropscanstart=600 \
+    cropscanlength=120 \
+    slackurl=https://127.0.0.1
+
 # Set the working directory to /app
 WORKDIR /app
 
@@ -137,17 +149,6 @@ apt-get -y autoremove && \
 apt-get clean && \
 # Set transcode script as executable
 chmod +x /app/transcode.sh
-
-# Environment variables
-ENV encoder=x265 \
-    audioencoder=libopus \
-    hdcrf=21 \
-    sdcrf=21 \
-    preset=medium \
-    cropblackbars=true \
-    cropscanstart=600 \
-    cropscanlength=120 \
-    slackurl=https://127.0.0.1
 
 # Run transcode.sh when the container launches
 CMD ["/app/transcode.sh"]
