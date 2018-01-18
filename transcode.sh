@@ -69,7 +69,7 @@ fun_transcode () {
   fi
 
   # Set crf based on video width
-  if (( ${width} < 720 )); then
+  if (( ${width} < 1250 )); then
     crf=${sdcrf}
   elif (( ${width} <= 1920 )); then
     crf=${hdcrf}
