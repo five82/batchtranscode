@@ -6,7 +6,7 @@
 # Takes mkv files, analyzes, and batch transcodes automatically based on the following conditions:
 #   number of audio tracks
 #   number of channels in the first audio track. set bitrate accordingly.
-#   determines crf based of width of video - is it 1080p or lower?
+#   determines crf based of width of video - sd, hd, or 4k
 #   is there a forced subtitle track? if so, set it to forced.
 
 # LIMITATIONS:
