@@ -4,9 +4,9 @@ FROM ubuntu:16.04
 # Environment variables
 ENV encoder=x265 \
     audioencoder=libopus \
-    uhdcrf=21 \
+    uhdcrf=22 \
     hdcrf=21 \
-    sdcrf=21 \
+    sdcrf=20 \
     preset=medium \
     cropblackbars=true \
     cropscanstart=600 \
