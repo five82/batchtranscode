@@ -22,7 +22,9 @@ ADD . /app
 RUN \
 # Install dependencies
 apt-get update && \
-apt-get install -y mkvtoolnix && \
+apt-get install -y --no-install-recommends mkvtoolnix && \
+apt-get clean && \
+rm -rf /var/lib/apt/lists/* && \
 # Set transcode script as executable
 chmod +x /app/transcode.sh
 
