@@ -283,6 +283,12 @@ fun_transcode () {
     echo "crf=$crf"
     exit
   fi  
+
+  # Add HDR metadata to the MKV container header for UHD files
+  # FFmpeg doesn't copy the metadata yet when encoding
+  if (( ${width} > 1920 )); then
+    mkvpropedit --edit track:1 -s colour-primaries=9 -s colour-transfer-characteristics=16 -s colour-matrix-coefficients=9 ${output}
+  fi
 }
 
 

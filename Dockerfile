@@ -19,8 +19,10 @@ WORKDIR /app
 # Copy the current directory contents into the container at /app
 ADD . /app
 
-# Set transcode script as executable
 RUN \
+# Install dependencies
+apt-get install -y mkvtoolnix && \
+# Set transcode script as executable
 chmod +x /app/transcode.sh
 
 # Run transcode.sh when the container launches
