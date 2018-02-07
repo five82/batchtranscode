@@ -21,6 +21,7 @@ ADD . /app
 
 RUN \
 # Install dependencies
+apt-get update && \
 apt-get install -y mkvtoolnix && \
 # Set transcode script as executable
 chmod +x /app/transcode.sh
