@@ -21,6 +21,8 @@ ADD . /app
 
 RUN \
 # Install dependencies
+sh -c 'echo "deb http://mkvtoolnix.download/ubuntu/$(lsb_release -sc)/ ./" >> /etc/apt/sources.list.d/bunkus.org.list' && \
+wget -q -O - https://mkvtoolnix.download/gpg-pub-moritzbunkus.txt | apt-key add - && \
 apt-get update && \
 apt-get install -y --no-install-recommends mkvtoolnix && \
 apt-get clean && \
