@@ -21,10 +21,14 @@ ADD . /app
 
 RUN \
 # Install dependencies
+apt-get update && \
+apt-get install -y --no-install-recommends lsb-release wget && \
 sh -c 'echo "deb http://mkvtoolnix.download/ubuntu/$(lsb_release -sc)/ ./" >> /etc/apt/sources.list.d/bunkus.org.list' && \
 wget -q -O - https://mkvtoolnix.download/gpg-pub-moritzbunkus.txt | apt-key add - && \
 apt-get update && \
 apt-get install -y --no-install-recommends mkvtoolnix && \
+apt-get remove -y lsb-release wget && \
+apt-get -y autoremove && \
 apt-get clean && \
 rm -rf /var/lib/apt/lists/* && \
 # Set transcode script as executable
