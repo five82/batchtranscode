@@ -50,11 +50,11 @@ fun_transcode () {
   width=${streams_stream_0_width}
 
   # Crop black bars
-  if [ ${cropblackbars} == "true" ] && [ ${width} -le 1920 ]; then
+  if [ ${cropblackbars} == "true" ] && (( ${width} <= 1920 )); then
     vidcrop=$(/app/ffmpeg -ss "${cropscanstart}" -i "${input}" -f matroska -t "${cropscanlength}" -an -vf cropdetect=24:16:0 -y -crf 51 -preset ultrafast /dev/null 2>&1 | grep -o crop=.* | sort -bh | uniq -c | sort -bh | tail -n1 | grep -o crop=.*)
   # Adjust black levels in cropdetect for uhd/hdr
   elif [ ${cropblackbars} == "true" ]; then
-    vidcrop=$(/app/ffmpeg -ss "${cropscanstart}" -i "${input}" -f matroska -t "${cropscanlength}" -an -vf cropdetect=64:16:0 -y -crf 51 -preset ultrafast /dev/null 2>&1 | grep -o crop=.* | sort -bh | uniq -c | sort -bh | tail -n1 | grep -o crop=.*)
+    vidcrop=$(/app/ffmpeg -ss "${cropscanstart}" -i "${input}" -f matroska -t "${cropscanlength}" -an -vf cropdetect=150:16:0 -y -crf 51 -preset ultrafast /dev/null 2>&1 | grep -o crop=.* | sort -bh | uniq -c | sort -bh | tail -n1 | grep -o crop=.*)
   else
     # Don't crop
     vidcrop="crop=in_w:in_h"
