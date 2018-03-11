@@ -92,6 +92,18 @@ fun_transcode () {
     exit
   fi
 
+  # Select ffmpeg encoder based on bitdepth
+  if [ ${bitdepth} == 8 ]; then
+    encoderbinary="ffmpeg"
+    pixformat="yuv420p"
+  elif [ ${bitdepth} == 10 ]; then
+    encoderbinary="ffmpeg-10bit"
+    pixformat="yuv420p10le"
+  else
+    echo "ERROR: Invalid bit depth of ${bitdepth} specified. Valid values are 8 or 10. Aborting."
+    exit
+  fi
+
   # Set bitrate for first audio track based on the number of channels
   if [ ${channels} == 2 ]; then
     abitrate="128k"
@@ -107,59 +119,67 @@ fun_transcode () {
   # Transcode
   if [ ${atracks} == 1 ] && [ !  ${forced} ]; then
     echo "inputfilename=$inputfilename"
+    echo "encoder binary=$encoderbinary"
+    echo "pixel format=$pixformat"
     echo "atracks=$atracks"
     echo "forced=$forced"
     echo "You have selected 1 audio track, no subtitles."
     fun_slackpost "Starting encode: $inputfilename" "INFO"
-    /app/ffmpeg \
+    /app/${encoderbinary} \
       -i ${input} \
       -vf ${vidcrop} \
       -map 0:0 -map 0:1 \
-      -c:v ${encoderlib} -preset ${preset} ${encoderparams} crf=${crf} \
+      -c:v ${encoderlib} -preset ${preset} -pix_fmt ${pixformat} ${encoderparams} crf=${crf} \
       -c:a:0 ${audioencoder} -b:a:0 ${abitrate} \
       ${output}
     fun_slackpost "Finished encode: $inputfilename" "INFO"
   elif [ ${atracks} == 1 ] && [ ${forced} ]; then
     echo "inputfilename=$inputfilename"
+    echo "encoder binary=$encoderbinary"
+    echo "pixel format=$pixformat"
     echo "atracks=$atracks"
     echo "forced=$forced"
     echo "You have selected 1 audio track, subtitles."
     fun_slackpost "Starting encode: $inputfilename" "INFO"
-    /app/ffmpeg \
+    /app/${encoderbinary} \
       -i ${input} \
       -vf ${vidcrop} \
       -map 0:0 -map 0:1 -map 0:2 \
-      -c:v ${encoderlib} -preset ${preset} ${encoderparams} crf=${crf} \
+      -c:v ${encoderlib} -preset ${preset} -pix_fmt ${pixformat} ${encoderparams} crf=${crf} \
       -c:a:0 ${audioencoder} -b:a:0 ${abitrate} \
       -c:s:0 copy -disposition:s:0 +default+forced \
       ${output}
     fun_slackpost "Finished encode: $inputfilename" "INFO"
   elif [ ${atracks} == 2 ] && [ ! ${forced} ]; then
     echo "inputfilename=$inputfilename"
+    echo "encoder binary=$encoderbinary"
+    echo "pixel format=$pixformat"
     echo "atracks=$atracks"
     echo "forced=$forced"
     echo "You have selected 2 audio tracks, no subtitles."
     fun_slackpost "Starting encode: $inputfilename" "INFO"
-    /app/ffmpeg \
+    /app/${encoderbinary} \
       -i ${input} \
       -vf ${vidcrop} \
       -map 0:0 -map 0:1 -map 0:2 \
-      -c:v ${encoderlib} -preset ${preset} ${encoderparams} crf=${crf} \
+      -c:v ${encoderlib} -preset ${preset} -pix_fmt ${pixformat} ${encoderparams} crf=${crf} \
       -c:a:0 ${audioencoder} -b:a:0 ${abitrate} \
       -c:a:1 ${audioencoder} -b:a:1 128k \
       ${output}
     fun_slackpost "Finished encode: $inputfilename" "INFO"
   elif [ ${atracks} == 2 ] && [ ${forced} ]; then
     echo "inputfilename=$inputfilename"
+    echo "encoder binary=$encoderbinary"
+    echo "pixel format=$pixformat"
     echo "atracks=$atracks"
     echo "forced=$forced"
     echo "You have selected 2 audio tracks, subtitles."
     fun_slackpost "Starting encode: $inputfilename" "INFO"
-    /app/ffmpeg \
+    /app/${encoderbinary} \
       -i ${input} \
       -vf ${vidcrop} \
       -map 0:0 -map 0:1 -map 0:2 -map 0:3 \
-      -c:v ${encoderlib} -preset ${preset} ${encoderparams} crf=${crf} \
+      -c:v ${encoderlib} -preset ${preset} -pix_fmt ${pixformat} ${encoderparams} crf=${crf} \
       -c:a:0 ${audioencoder} -b:a:0 ${abitrate} \
       -c:a:1 ${audioencoder} -b:a:1 128k \
       -c:s:0 copy -disposition:s:0 +default+forced \
@@ -167,15 +187,17 @@ fun_transcode () {
     fun_slackpost "Finished encode: $inputfilename" "INFO"
   elif [ ${atracks} == 3 ] && [ ! ${forced} ]; then
     echo "inputfilename=$inputfilename"
+    echo "encoder binary=$encoderbinary"
+    echo "pixel format=$pixformat"
     echo "atracks=$atracks"
     echo "forced=$forced"
     echo "You have selected 3 audio tracks, no subtitles."
     fun_slackpost "Starting encode: $inputfilename" "INFO"
-    /app/ffmpeg \
+    /app/${encoderbinary} \
       -i ${input} \
       -vf ${vidcrop} \
       -map 0:0 -map 0:1 -map 0:2 -map 0:3 \
-      -c:v ${encoderlib} -preset ${preset} ${encoderparams} crf=${crf} \
+      -c:v ${encoderlib} -preset ${preset} -pix_fmt ${pixformat} ${encoderparams} crf=${crf} \
       -c:a:0 ${audioencoder} -b:a:0 ${abitrate} \
       -c:a:1 ${audioencoder} -b:a:1 128k \
       -c:a:2 ${audioencoder} -b:a:2 128k \
@@ -183,15 +205,17 @@ fun_transcode () {
     fun_slackpost "Finished encode: $inputfilename" "INFO"
   elif [ ${atracks} == 3 ] && [ ${forced} ]; then
     echo "inputfilename=$inputfilename"
+    echo "encoder binary=$encoderbinary"
+    echo "pixel format=$pixformat"
     echo "atracks=$atracks"
     echo "forced=$forced"
     echo "You have selected 3 audio tracks, subtitles."
     fun_slackpost "Starting encode: $inputfilename" "INFO"
-    /app/ffmpeg \
+    /app/${encoderbinary} \
       -i ${input} \
       -vf ${vidcrop} \
       -map 0:0 -map 0:1 -map 0:2 -map 0:3 -map 0:4 \
-      -c:v ${encoderlib} -preset ${preset} ${encoderparams} crf=${crf} \
+      -c:v ${encoderlib} -preset ${preset} -pix_fmt ${pixformat} ${encoderparams} crf=${crf} \
       -c:a:0 ${audioencoder} -b:a:0 ${abitrate} \
       -c:a:1 ${audioencoder} -b:a:1 128k \
       -c:a:2 ${audioencoder} -b:a:2 128k \
@@ -200,15 +224,17 @@ fun_transcode () {
     fun_slackpost "Finished encode: $inputfilename" "INFO"
   elif [ ${atracks} == 4 ] && [ ! ${forced} ]; then
     echo "inputfilename=$inputfilename"
+    echo "encoder binary=$encoderbinary"
+    echo "pixel format=$pixformat"
     echo "atracks=$atracks"
     echo "forced=$forced"
     echo "You have selected 4 audio tracks, no subtitles."
     fun_slackpost "Starting encode: $inputfilename" "INFO"
-    /app/ffmpeg \
+    /app/${encoderbinary} \
       -i ${input} \
       -vf ${vidcrop} \
       -map 0:0 -map 0:1 -map 0:2 -map 0:3 -map 0:4 \
-      -c:v ${encoderlib} -preset ${preset} ${encoderparams} crf=${crf} \
+      -c:v ${encoderlib} -preset ${preset} -pix_fmt ${pixformat} ${encoderparams} crf=${crf} \
       -c:a:0 ${audioencoder} -b:a:0 ${abitrate} \
       -c:a:1 ${audioencoder} -b:a:1 128k \
       -c:a:2 ${audioencoder} -b:a:2 128k \
@@ -217,15 +243,17 @@ fun_transcode () {
     fun_slackpost "Finished encode: $inputfilename" "INFO"
   elif [ ${atracks} == 4 ] && [ ${forced} ]; then
     echo "inputfilename=$inputfilename"
+    echo "encoder binary=$encoderbinary"
+    echo "pixel format=$pixformat"
     echo "atracks=$atracks"
     echo "forced=$forced"
     echo "You have selected 4 audio tracks, subtitles."
     fun_slackpost "Starting encode: $inputfilename" "INFO"
-    /app/ffmpeg \
+    /app/${encoderbinary} \
       -i ${input} \
       -vf ${vidcrop} \
       -map 0:0 -map 0:1 -map 0:2 -map 0:3 -map 0:4 -map 0:5 \
-      -c:v ${encoderlib} -preset ${preset} ${encoderparams} crf=${crf} \
+      -c:v ${encoderlib} -preset ${preset} -pix_fmt ${pixformat} ${encoderparams} crf=${crf} \
       -c:a:0 ${audioencoder} -b:a:0 ${abitrate} \
       -c:a:1 ${audioencoder} -b:a:1 128k \
       -c:a:2 ${audioencoder} -b:a:2 128k \
@@ -235,15 +263,17 @@ fun_transcode () {
     fun_slackpost "Finished encode: $inputfilename" "INFO"
   elif [ ${atracks} == 5 ] && [ ! ${forced} ]; then
     echo "inputfilename=$inputfilename"
+    echo "encoder binary=$encoderbinary"
+    echo "pixel format=$pixformat"
     echo "atracks=$atracks"
     echo "forced=$forced"
     echo "You have selected 5 audio tracks, no subtitles."
     fun_slackpost "Starting encode: $inputfilename" "INFO"
-    /app/ffmpeg \
+    /app/${encoderbinary} \
       -i ${input} \
       -vf ${vidcrop} \
       -map 0:0 -map 0:1 -map 0:2 -map 0:3 -map 0:4 -map 0:5 \
-      -c:v ${encoderlib} -preset ${preset} ${encoderparams} crf=${crf} \
+      -c:v ${encoderlib} -preset ${preset} -pix_fmt ${pixformat} ${encoderparams} crf=${crf} \
       -c:a:0 ${audioencoder} -b:a:0 ${abitrate} \
       -c:a:1 ${audioencoder} -b:a:1 128k \
       -c:a:2 ${audioencoder} -b:a:2 128k \
@@ -253,15 +283,17 @@ fun_transcode () {
     fun_slackpost "Finished encode: $inputfilename" "INFO"
   elif [ ${atracks} == 5 ] && [ ${forced} ]; then
     echo "inputfilename=$inputfilename"
+    echo "encoder binary=$encoderbinary"
+    echo "pixel format=$pixformat"
     echo "atracks=$atracks"
     echo "forced=$forced"
     echo "You have selected 5 audio tracks, subtitles."
     fun_slackpost "Starting encode: $inputfilename" "INFO"
-    /app/ffmpeg \
+    /app/${encoderbinary} \
       -i ${input} \
       -vf ${vidcrop} \
       -map 0:0 -map 0:1 -map 0:2 -map 0:3 -map 0:4 -map 0:5 -map 0:6 \
-      -c:v ${encoderlib} -preset ${preset} ${encoderparams} crf=${crf} \
+      -c:v ${encoderlib} -preset ${preset} -pix_fmt ${pixformat} ${encoderparams} crf=${crf} \
       -c:a:0 ${audioencoder} -b:a:0 ${abitrate} \
       -c:a:1 ${audioencoder} -b:a:1 128k \
       -c:a:2 ${audioencoder} -b:a:2 128k \
