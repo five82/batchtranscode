@@ -13,7 +13,7 @@
 # limit of five audio tracks for input video
 # limit of one forced subtitle track for input video
 # stereo only output for second, third, fourth and fifth audio tracks (intended for commentary tracks)
-
+# 4k/hdr mkv support is experimental and probably broken
 
 # INPUT AND OUTPUT DIRECTORIES:
 inputdir=/input
@@ -322,7 +322,6 @@ fun_transcode () {
     mkvpropedit --edit track:1 -s colour-primaries=9 -s colour-transfer-characteristics=16 -s colour-matrix-coefficients=9 ${output}
   fi
 }
-
 
 # Transcode each file in the input directory
 count=0
