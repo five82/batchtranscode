@@ -5,7 +5,8 @@ FROM ubuntu:18.04
 ENV encoder=x265 \
     bitdepth=10 \
     audioencoder=aac \
-    uhdcrf=21 \
+    commentarybitrate=128k \
+    uhdcrf=20 \
     hdcrf=21 \
     sdcrf=20 \
     preset=medium \
