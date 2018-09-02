@@ -12,7 +12,7 @@
 # LIMITATIONS:
 # Limit of one subtitle track for input. Will encode as forced.
 # Stereo only output for secondary audio tracks (intended for commentary tracks)
-# 4k/hdr mkv support is experimental and probably broken
+# Sources larger than 1080p must be HDR
 
 # INPUT AND OUTPUT DIRECTORIES:
 inputdir=/input
@@ -160,7 +160,8 @@ fun_transcode () {
   fi
   fun_videoinfo
   if (( ${width} > 1920 )); then
-    #FFREPORT=level=48:file=/output/ffreport.log \ # Uncomment to debug
+    # Uncomment to debug
+    # FFREPORT=file=/output/ffreport.log \
 	  /app/${encoderbinary} \
 	  	-i ${input} \
 	  	-vf ${vidcrop} \
@@ -174,7 +175,8 @@ fun_transcode () {
 	  	${audsubargs[@]} \
 	  	${output}
   else
-    FFREPORT=file=/output/ffreport.log \
+    # Uncomment to debug
+    # FFREPORT=file=/output/ffreport.log \
     /app/${encoderbinary} \
 	    -i ${input} \
 	    -vf ${vidcrop} \
