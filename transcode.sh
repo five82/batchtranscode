@@ -166,8 +166,6 @@ fun_transcode () {
       -i ${input} \
       -vf ${vidcrop} \
       ${mapargs[@]} \
-      # Adding channel layouts to work around the following ffmpeg libopus defect:
-      # https://trac.ffmpeg.org/ticket/5718
       -af aformat=channel_layouts="7.1|5.1|stereo" \
       -c:v ${encoderlib} \
       -tag:v hvc1 \
@@ -184,8 +182,6 @@ fun_transcode () {
       -i ${input} \
       -vf ${vidcrop} \
       ${mapargs[@]} \
-      # Adding channel layouts to work around the following ffmpeg libopus defect:
-      # https://trac.ffmpeg.org/ticket/5718
       -af aformat=channel_layouts="7.1|5.1|stereo" \
       -c:v ${encoderlib} \
       -preset ${preset} \
