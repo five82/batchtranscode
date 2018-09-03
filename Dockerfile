@@ -4,7 +4,7 @@ FROM ubuntu:18.04
 # Environment variables
 ENV encoder=x265 \
     bitdepth=10 \
-    audioencoder=aac \
+    audioencoder=libopus \
     commentarybitrate=128k \
     uhdcrf=20 \
     hdcrf=21 \
