@@ -159,6 +159,9 @@ fun_transcode () {
     audsubargs+=(-c:s:0 copy -disposition:s:0 +default+forced)
   fi
   fun_videoinfo
+  # Added channel layouts to ffmpeg commands to work around
+  # the following ffmpeg libopus defect:
+  # https://trac.ffmpeg.org/ticket/5718
   if (( ${width} > 1920 )); then
     # Uncomment to debug
     # FFREPORT=file=/output/ffreport.log \
