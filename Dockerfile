@@ -26,6 +26,7 @@ RUN \
 apt-get update && \
 apt-get install -y \
   curl \
+  mediainfo \
   xz-utils && \
 # Download ffmpeg static binaries
 # https://johnvansickle.com/ffmpeg/

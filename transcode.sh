@@ -67,28 +67,28 @@ fun_transcode () {
   tracks=$(/app/ffprobe -v error -show_entries format=nb_streams -of default=noprint_wrappers=1:nokey=1:noprint_wrappers=1 "${input}")
   forced=$(/app/ffprobe -v error -show_entries stream=index -select_streams s -of default=noprint_wrappers=1:nokey=1:noprint_wrappers=1 "${input}")
   channels=$(/app/ffprobe -v error -select_streams a:0 -show_entries stream=channels -of default=nokey=1:noprint_wrappers=1 "${input}")
-  inputvcodec=$(/app/ffprobe -v error -select_streams v:0 -show_entries stream=codec_name -of default=nokey=1:noprint_wrappers=1 "${input}")
+  sourcevidbitdepth=$(mediainfo --Inform="Video;%BitDepth%" "${input}")
   eval $(/app/ffprobe -v error -of flat=s=_ -select_streams v:0 -show_entries stream=width "${input}")
   width=${streams_stream_0_width}
 
-  # Select ffmpeg encoder based on bitdepth
-  if [ ${bitdepth} == 8 ]; then
-    encoderbinary="ffmpeg"
-    pixformat="yuv420p"
-  elif [ ${bitdepth} == 10 ]; then
-    encoderbinary="ffmpeg-10bit"
-    pixformat="yuv420p10le"
-  else
-    echo "ERROR: Invalid bit depth of ${bitdepth} specified. Valid values are 8 or 10. Aborting."
-    exit
+  # Select ffmpeg binary for crop detection
+  if [ ${cropblackbars} == "true" ]; then
+    if [ ${sourcevidbitdepth} == 8 ]; then
+      cdencoderbinary="ffmpeg"
+    elif [ ${sourcevidbitdepth} == 10 ]; then
+      cdencoderbinary="ffmpeg-10bit"
+    else
+      echo "ERROR: Invalid bit depth of ${sourcevidbitdepth} detected in source. Valid values are 8 or 10. Aborting."
+      exit
+    fi
   fi
 
   # Crop black bars
   if [ ${cropblackbars} == "true" ] && (( ${width} <= 1920 )); then
-    vidcrop=$(/app/${encoderbinary} -ss "${cropscanstart}" -i "${input}" -f matroska -t "${cropscanlength}" -an -vf cropdetect=24:16:0 -y -crf 51 -preset ultrafast /dev/null 2>&1 | grep -o crop=.* | sort -bh | uniq -c | sort -bh | tail -n1 | grep -o crop=.*)
+    vidcrop=$(/app/${cdencoderbinary} -ss "${cropscanstart}" -i "${input}" -f matroska -t "${cropscanlength}" -an -vf cropdetect=24:16:0 -y -crf 51 -preset ultrafast /dev/null 2>&1 | grep -o crop=.* | sort -bh | uniq -c | sort -bh | tail -n1 | grep -o crop=.*)
   # Adjust black levels in cropdetect for uhd/hdr
   elif [ ${cropblackbars} == "true" ]; then
-    vidcrop=$(/app/${encoderbinary} -ss "${cropscanstart}" -i "${input}" -f matroska -t "${cropscanlength}" -an -vf cropdetect=150:16:0 -y -crf 51 -preset ultrafast /dev/null 2>&1 | grep -o crop=.* | sort -bh | uniq -c | sort -bh | tail -n1 | grep -o crop=.*)
+    vidcrop=$(/app/${cdencoderbinary} -ss "${cropscanstart}" -i "${input}" -f matroska -t "${cropscanlength}" -an -vf cropdetect=150:16:0 -y -crf 51 -preset ultrafast /dev/null 2>&1 | grep -o crop=.* | sort -bh | uniq -c | sort -bh | tail -n1 | grep -o crop=.*)
   else
     # Don't crop
     vidcrop="crop=in_w:in_h"
@@ -112,6 +112,18 @@ fun_transcode () {
     crf=${hdcrf}
   else
     crf=${uhdcrf}
+  fi
+
+  # Select ffmpeg encoder based on bitdepth
+  if [ ${bitdepth} == 8 ]; then
+    encoderbinary="ffmpeg"
+    pixformat="yuv420p"
+  elif [ ${bitdepth} == 10 ]; then
+    encoderbinary="ffmpeg-10bit"
+    pixformat="yuv420p10le"
+  else
+    echo "ERROR: Invalid bit depth of ${bitdepth} specified. Valid values are 8 or 10. Aborting."
+    exit
   fi
 
   # Set encoder variables
