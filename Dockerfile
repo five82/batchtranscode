@@ -5,7 +5,9 @@ FROM ubuntu:18.04
 ENV encoder=x265 \
     bitdepth=10 \
     audioencoder=libopus \
-    commentarybitrate=128k \
+    stereobitrate=128k \
+    surrfiveonebitrate=384k \
+    surrsevenonebitrate=512k \
     uhdcrf=20 \
     hdcrf=21 \
     sdcrf=20 \

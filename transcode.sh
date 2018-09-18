@@ -138,13 +138,13 @@ fun_transcode () {
     exit
   fi
 
-  # Set bitrate for first audio track based on the number of channels
+  # Set bitrate for audio tracks based on the number of channels
   if [ ${channels} == 2 ]; then
-    abitrate="128k"
+    abitrate=${stereobitrate}
   elif [ ${channels} == 6 ]; then
-    abitrate="384k"
+    abitrate=${surrfiveonebitrate}
   elif [ ${channels} == 8 ]; then
-    abitrate="512k"
+    abitrate=${surrsevenonebitrate}
   else
     echo "ERROR: Invalid channel number ${channels} in first audio track of ${inputfilename}. Aborting."
     exit
@@ -161,9 +161,6 @@ fun_transcode () {
   j=0
   audsubargs=()
   while [ $j -lt $atracks ]; do
-    if (( $j > 0 )); then
-      abitrate=${commentarybitrate}
-    fi
     audsubargs+=(-c:a:$j ${audioencoder} -b:a:$j ${abitrate})
     let j=j+1
   done
