@@ -14,7 +14,7 @@
 # Subtitles will be stretched if the video is cropped.
 # Sources larger than 1080p must be HDR
 
-# INPUT AND OUTPUT DIRECTORIES:
+# Input and output directories:
 inputdir=/input
 outputdir=/output
 
