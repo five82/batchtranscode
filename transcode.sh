@@ -4,14 +4,14 @@
 # Author: five82
 # https://github.com/five82
 # Takes mkv files, analyzes, and batch transcodes automatically based on the following conditions:
-#   number of audio tracks
-#   number of channels in the first audio track. set bitrate accordingly.
-#   determines crf based of width of video - sd, hd, or 4k
-#   is there a forced subtitle track? if so, set it to forced.
+#   Number of audio tracks
+#   Number of channels in audio tracks. Set bitrate accordingly.
+#   Determines crf based of width of video - SD, HD, or 4K
+#   Is there a forced subtitle track? If so, set it to forced.
 
 # LIMITATIONS:
 # Limit of one subtitle track for input. Will encode as forced.
-# Stereo only output for secondary audio tracks (intended for commentary tracks)
+# Subtitles will be stretched if the video is cropped.
 # Sources larger than 1080p must be HDR
 
 # INPUT AND OUTPUT DIRECTORIES:
