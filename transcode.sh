@@ -6,13 +6,12 @@
 # Takes mkv files, analyzes, and batch transcodes automatically based on the following conditions:
 #   Number of audio tracks
 #   Number of channels in audio tracks. Set bitrate accordingly.
-#   Determines crf based of width of video - SD, HD, or 4K
-#   Is there a forced subtitle track? If so, set it to forced.
+#   Number of subtitle tracks
+#   Determines crf based on width of video - SD, HD, or 4K
 
 # LIMITATIONS:
-# Limit of one subtitle track for input. Will encode as forced.
-# Subtitles will be stretched if the video is cropped.
 # Sources larger than 1080p must be HDR
+# Can't set subtitles as forced or default.
 
 # Input and output directories:
 inputdir=/input
@@ -50,11 +49,11 @@ fun_videoinfo () {
   echo "pixel format=$pixformat"
   echo "preset=${preset}"
   echo "encoderparams=${encoderparams}"
-  echo "audsubargs=${audsubargs[@]}"
+  echo "audioargs=${audioargs[@]}"
+  echo "subtitleargs=${subtitleargs[@]}"
   echo "tracks=$tracks"
   echo "atracks=$atracks"
-  echo "forced=$forced"
-  echo "channels=$channels"
+  echo "stracks=$stracks"
   echo "width=$width"
   echo "crf=$crf"
   echo "output=${output}"
@@ -64,9 +63,9 @@ fun_videoinfo () {
 fun_transcode () {
 
   # Analyze input video
-  tracks=$(/app/ffprobe -v error -show_entries format=nb_streams -of default=noprint_wrappers=1:nokey=1:noprint_wrappers=1 "${input}")
-  forced=$(/app/ffprobe -v error -show_entries stream=index -select_streams s -of default=noprint_wrappers=1:nokey=1:noprint_wrappers=1 "${input}")
-  channels=$(/app/ffprobe -v error -select_streams a:0 -show_entries stream=channels -of default=nokey=1:noprint_wrappers=1 "${input}")
+  tracks=$(/app/ffprobe -show_entries format=nb_streams -v 0 -of compact=p=0:nk=1 "${input}")
+  atracks=$(/app/ffprobe -i "${input}" -v 0 -select_streams a -show_entries stream=index -of compact=p=0:nk=1 | wc -l)
+  stracks=$(/app/ffprobe -i "${input}" -v 0 -select_streams s -show_entries stream=index -of compact=p=0:nk=1 | wc -l)
   sourcevidbitdepth=$(mediainfo --Inform="Video;%BitDepth%" "${input}")
   eval $(/app/ffprobe -v error -of flat=s=_ -select_streams v:0 -show_entries stream=width "${input}")
   width=${streams_stream_0_width}
@@ -86,7 +85,7 @@ fun_transcode () {
   # Crop black bars
   if [ ${cropblackbars} == "true" ] && (( ${width} <= 1920 )); then
     vidcrop=$(/app/${cdencoderbinary} -ss "${cropscanstart}" -i "${input}" -f matroska -t "${cropscanlength}" -an -vf cropdetect=24:16:0 -y -crf 51 -preset ultrafast /dev/null 2>&1 | grep -o crop=.* | sort -bh | uniq -c | sort -bh | tail -n1 | grep -o crop=.*)
-  # Adjust black levels in cropdetect for uhd/hdr
+  # Adjust black levels in cropdetect for hdr
   elif [ ${cropblackbars} == "true" ]; then
     vidcrop=$(/app/${cdencoderbinary} -ss "${cropscanstart}" -i "${input}" -f matroska -t "${cropscanlength}" -an -vf cropdetect=150:16:0 -y -crf 51 -preset ultrafast /dev/null 2>&1 | grep -o crop=.* | sort -bh | uniq -c | sort -bh | tail -n1 | grep -o crop=.*)
   else
@@ -97,13 +96,6 @@ fun_transcode () {
   # Determine output file name
   inputfilename=$(basename "${input}")
   output="${outputdir}/${inputfilename}"
-
-  # Determine number of audio tracks
-  if [ ${forced} ]; then
-    atracks=$(( $tracks-2 ))
-  else
-    atracks=$(( $tracks-1 ))
-  fi
 
   # Set crf based on video width
   if (( ${width} < 1250 )); then
@@ -138,18 +130,6 @@ fun_transcode () {
     exit
   fi
 
-  # Set bitrate for audio tracks based on the number of channels
-  if [ ${channels} == 2 ]; then
-    abitrate=${stereobitrate}
-  elif [ ${channels} == 6 ]; then
-    abitrate=${surrfiveonebitrate}
-  elif [ ${channels} == 8 ]; then
-    abitrate=${surrsevenonebitrate}
-  else
-    echo "ERROR: Invalid channel number ${channels} in first audio track of ${inputfilename}. Aborting."
-    exit
-  fi
-
   # Encode
   fun_slackpost "Starting encode: $inputfilename" "INFO"
   i=0
@@ -159,21 +139,36 @@ fun_transcode () {
     let i=i+1
   done
   j=0
-  audsubargs=()
+  audioargs=()
   while [ $j -lt $atracks ]; do
-    audsubargs+=(-c:a:$j ${audioencoder} -b:a:$j ${abitrate})
+    channels=$(/app/ffprobe -v error -select_streams a:$j -show_entries stream=channels -of default=nokey=1:noprint_wrappers=1 "${input}")
+    # Determine bitrate based on number of channels
+    if [ ${channels} == 2 ]; then
+      abitrate=${stereobitrate}
+    elif [ ${channels} == 6 ]; then
+      abitrate=${surrfiveonebitrate}
+    elif [ ${channels} == 8 ]; then
+      abitrate=${surrsevenonebitrate}
+    else
+      echo "ERROR: Invalid channel number ${channels} in audio track of ${inputfilename}. Aborting."
+      exit
+    fi
+    audioargs+=(-c:a:$j ${audioencoder} -b:a:$j ${abitrate})
     let j=j+1
   done
-  if [ ${forced} ]; then
-    audsubargs+=(-c:s:0 copy -disposition:s:0 +default+forced)
-  fi
+  k=0
+  subtitleargs=()
+  while [ $k -lt $stracks ]; do
+    subtitleargs+=(-c:s:$k copy)
+    let k=k+1
+  done
   fun_videoinfo
   # Added channel layouts to ffmpeg commands to work around
   # the following ffmpeg libopus defect:
   # https://trac.ffmpeg.org/ticket/5718
   if (( ${width} > 1920 )); then
     # Uncomment to debug
-    # FFREPORT=file=/output/ffreport.log \
+    # FFREPORT=file=/output/ffreport-$(date -d "today" +"%Y%m%d%H%M").log \
     /app/${encoderbinary} \
       -i ${input} \
       -vf ${vidcrop} \
@@ -185,11 +180,12 @@ fun_transcode () {
       -crf ${crf} \
       -pix_fmt ${pixformat} \
       ${encoderparams} "colorprim=bt2020:transfer=smpte2084:colormatrix=bt2020nc" \
-      ${audsubargs[@]} \
+      ${audioargs[@]} \
+      ${subtitleargs[@]} \
       ${output}
   else
     # Uncomment to debug
-    # FFREPORT=file=/output/ffreport.log \
+    # FFREPORT=file=/output/ffreport-$(date -d "today" +"%Y%m%d%H%M").log \
     /app/${encoderbinary} \
       -i ${input} \
       -vf ${vidcrop} \
@@ -200,10 +196,11 @@ fun_transcode () {
       -pix_fmt ${pixformat} \
       ${encoderparams} \
       crf=${crf} \
-      ${audsubargs[@]} \
+      ${audioargs[@]} \
+      ${subtitleargs[@]} \
       ${output}
   fi
-  fun_slackpost "Finished encode: $inputfilename" "INFO"Z
+  fun_slackpost "Finished encode: $inputfilename" "INFO"
 }
 
 # Transcode each file in the input directory
