@@ -10,7 +10,7 @@ Takes mkv files, analyzes, and batch transcodes automatically using FFmpeg based
   - Number of subtitle tracks
   - Determines crf based on width of video - SD, HD, or 4K
 
-The container does support encoding UHD HDR10 videos.
+The container does support transcoding UHD HDR10 videos.
 
 ### Description
 
@@ -44,6 +44,6 @@ Create input and output directories. Add all video files that you want to encode
 ### FFmpeg optional parameters
 
 * ```-e uhdcrf="value"```  Specifies the crf for videos tracks above a width of 1920 pixels. The default value is ```"20"```.
-* ```-e hdcrf="value"```  Specifies the crf for videos tracks between 1250 and 1920 pixels. The default value is ```"21"```.
+* ```-e hdcrf="value"```  Specifies the crf for videos tracks with a width between 1250 and 1920 pixels. The default value is ```"21"```.
 * ```-e sdcrf="value"```  Specifies the crf for videos tracks below a width of 1250. The default value is ```"20"```.
 * ```-e preset="value"``` Specifies the preset for the x264 and x265 encoders. The default value is ```"medium"```. See the [x264 Preset Reference](http://dev.beandog.org/x264_preset_reference.html) for options.
