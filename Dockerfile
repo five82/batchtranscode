@@ -14,8 +14,7 @@ ENV encoder=x265 \
     preset=medium \
     cropblackbars=true \
     cropscanstart=600 \
-    cropscanlength=120 \
-    slackurl=https://127.0.0.1
+    cropscanlength=120
 
 # Set the working directory to /app
 WORKDIR /app
@@ -32,11 +31,11 @@ apt-get install -y \
   xz-utils && \
 # Download ffmpeg static binaries
 # https://johnvansickle.com/ffmpeg/
-curl -O https://johnvansickle.com/ffmpeg/builds/ffmpeg-git-64bit-static.tar.xz && \
-tar -xf ffmpeg-git-64bit-static.tar.xz && \
-cp ffmpeg-git-*-64bit-static/ffmpeg* . && \
-cp ffmpeg-git-*-64bit-static/ffprobe . && \
-rm -rf ffmpeg-git*64bit-static* && \
+curl -O https://johnvansickle.com/ffmpeg/builds/ffmpeg-git-amd64-static.tar.xz && \
+tar -xf ffmpeg-git-amd64-static.tar.xz && \
+cp ffmpeg-git-*-amd64-static/ffmpeg . && \
+cp ffmpeg-git-*-amd64-static/ffprobe . && \
+rm -rf ffmpeg-git*amd64-static* && \
 # Clean up dependencies
 apt-get remove -y \
   xz-utils && \
