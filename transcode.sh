@@ -7,55 +7,62 @@
 #   Number of audio tracks
 #   Number of channels in audio tracks. Set bitrate accordingly.
 #   Number of subtitle tracks
-#   Determines crf based on width of video - SD, HD, or 4K
+#   Determines crf based on width of video - SD, HD, or 4K or higher resolutions
+# Supports transcoding of HDR10 videos
 
 # LIMITATIONS:
-# Sources larger than 1080p must be HDR
-# Can't set subtitles as forced or default.
+#   Source videos must be mkv. Use ffmpeg or MKVToolNix to remux.
 
 # Input and output directories:
 inputdir=/input
 outputdir=/output
 
 fun_slackpost () {
-  slackmsg="$1"
-  case "$2" in
-    INFO)
-      slackicon=':slack:'
-      ;;
-    WARNING)
-      slackicon=':warning:'
-      ;;
-    ERROR)
-      slackicon=':bangbang:'
-      ;;
-    *)
-      slackicon=':slack:'
-      ;;
-  esac
-  curl -X POST --data "payload={\"text\": \"${slackicon} ${slackmsg}\"}" ${slackurl}
+  if  [[ -v $slackurl ]]; then
+    slackmsg="$1"
+    case "$2" in
+      INFO)
+        slackicon=':slack:'
+        ;;
+      WARNING)
+        slackicon=':warning:'
+        ;;
+      ERROR)
+        slackicon=':bangbang:'
+        ;;
+      *)
+        slackicon=':slack:'
+        ;;
+    esac
+    curl -X POST --data "payload={\"text\": \"${slackicon} ${slackmsg}\"}" ${slackurl}
+  fi
 }
 
 fun_videoinfo () {
   echo "Video info:"
-  echo "input=$input"
-  echo "inputfilename=$inputfilename"
+  echo "input=${input}"
+  echo "input file name=${inputfilename}"
   echo "bit depth=${bitdepth}"
-  echo "cropblackbars=${cropblackbars}"
-  echo "encoder binary=$encoderbinary"
-  echo "video crop=$vidcrop"
+  echo "crop black bars=${cropblackbars}"
+  echo "crop scan start=${workingcropscanstart}"
+  echo "crop scan length=${workingcropscanlength}"
+  echo "crop length=${croplength}"
+  echo "encoder binary=${encoderbinary}"
+  echo "video crop=${vidcrop}"
   echo "mapargs=${mapargs[@]}"
   echo "encoder library=${encoderlib}"
   echo "pixel format=$pixformat"
-  echo "preset=${preset}"
-  echo "encoderparams=${encoderparams}"
-  echo "audioargs=${audioargs[@]}"
-  echo "subtitleargs=${subtitleargs[@]}"
-  echo "tracks=$tracks"
-  echo "atracks=$atracks"
-  echo "stracks=$stracks"
-  echo "width=$width"
-  echo "crf=$crf"
+  echo "ffmpeg preset=${preset}"
+  echo "encoder params=${encoderparams}"
+  echo "audio args=${audioargs[@]}"
+  echo "subtitle args=${subtitleargs[@]}"
+  echo "tracks=${tracks}"
+  echo "audio tracks=${atracks}"
+  echo "subtitle tracks=${stracks}"
+  echo "source video duration=${sourcevidduration}"
+  echo "source color primaries=${sourcecolorprimaries}"
+  echo "width=${width}"
+  echo "crf=${crf}"
   echo "output=${output}"
 }
 
@@ -63,31 +70,38 @@ fun_videoinfo () {
 fun_transcode () {
 
   # Analyze input video
+  encoderbinary="ffmpeg"
   tracks=$(/app/ffprobe -show_entries format=nb_streams -v 0 -of compact=p=0:nk=1 "${input}")
   atracks=$(/app/ffprobe -i "${input}" -v 0 -select_streams a -show_entries stream=index -of compact=p=0:nk=1 | wc -l)
   stracks=$(/app/ffprobe -i "${input}" -v 0 -select_streams s -show_entries stream=index -of compact=p=0:nk=1 | wc -l)
-  sourcevidbitdepth=$(mediainfo --Inform="Video;%BitDepth%" "${input}")
+  sourcevidduration=$(/app/ffprobe -i "${input}" -show_format -v quiet | sed -n 's/duration=//p' | xargs printf %.0f)
+  sourcecolorprimaries=$(mediainfo --Inform="Video;%colour_primaries%" "${input}")
   eval $(/app/ffprobe -v error -of flat=s=_ -select_streams v:0 -show_entries stream=width "${input}")
   width=${streams_stream_0_width}
 
-  # Select ffmpeg binary for crop detection
+  # Crop black bars
   if [ ${cropblackbars} == "true" ]; then
-    if [ ${sourcevidbitdepth} == 8 ]; then
-      cdencoderbinary="ffmpeg"
-    elif [ ${sourcevidbitdepth} == 10 ]; then
-      cdencoderbinary="ffmpeg-10bit"
-    else
-      echo "ERROR: Invalid bit depth of ${sourcevidbitdepth} detected in source. Valid values are 8 or 10. Aborting."
+    croplength=$((${cropscanstart}+${cropscanlength}))
+    workingcropscanstart=${cropscanstart}
+    workingcropscanlength=${cropscanlength}
+    # Exit if the video is shorter than our fallback values
+    if (( ${sourcevidduration} < 85 )); then
+      echo "ERROR: Video length is shorter than 85 seconds. Adjust the cropscan values or set cropblackbars to false."
       exit
     fi
-  fi
-
-  # Crop black bars
-  if [ ${cropblackbars} == "true" ] && (( ${width} <= 1920 )); then
-    vidcrop=$(/app/${cdencoderbinary} -ss "${cropscanstart}" -i "${input}" -f matroska -t "${cropscanlength}" -an -vf cropdetect=24:16:0 -y -crf 51 -preset ultrafast /dev/null 2>&1 | grep -o crop=.* | sort -bh | uniq -c | sort -bh | tail -n1 | grep -o crop=.*)
-  # Adjust black levels in cropdetect for hdr
-  elif [ ${cropblackbars} == "true" ]; then
-    vidcrop=$(/app/${cdencoderbinary} -ss "${cropscanstart}" -i "${input}" -f matroska -t "${cropscanlength}" -an -vf cropdetect=150:16:0 -y -crf 51 -preset ultrafast /dev/null 2>&1 | grep -o crop=.* | sort -bh | uniq -c | sort -bh | tail -n1 | grep -o crop=.*)
+    # Use the fallback values if cropscanstart+cropscanlength exceeds the duration of the source video
+    if (( ${sourcevidduration} < ${croplength} )); then
+      workingcropscanstart=75
+      workingcropscanlength=30
+      echo "WARNING: Short video detected. Using cropscan fallback values (scan at the 75 second mark for 30 seconds)."
+      echo "         Adjust your cropscan values if the fallback times are not suitable for your video."
+    fi
+    if [ ${sourcecolorprimaries} != "BT.2020" ]; then
+      vidcrop=$(/app/${encoderbinary} -ss "${workingcropscanstart}" -i "${input}" -f matroska -t "${workingcropscanlength}" -an -vf cropdetect=24:16:0 -y -crf 51 -preset ultrafast /dev/null 2>&1 | grep -o crop=.* | sort -bh | uniq -c | sort -bh | tail -n1 | grep -o crop=.*)
+    # Adjust black levels in cropdetect for hdr
+    else
+      vidcrop=$(/app/${encoderbinary} -ss "${workingcropscanstart}" -i "${input}" -f matroska -t "${workingcropscanlength}" -an -vf cropdetect=150:16:0 -y -crf 51 -preset ultrafast /dev/null 2>&1 | grep -o crop=.* | sort -bh | uniq -c | sort -bh | tail -n1 | grep -o crop=.*)
+    fi
   else
     # Don't crop
     vidcrop="crop=in_w:in_h"
@@ -108,10 +122,8 @@ fun_transcode () {
 
   # Select ffmpeg encoder based on bitdepth
   if [ ${bitdepth} == 8 ]; then
-    encoderbinary="ffmpeg"
     pixformat="yuv420p"
   elif [ ${bitdepth} == 10 ]; then
-    encoderbinary="ffmpeg-10bit"
     pixformat="yuv420p10le"
   else
     echo "ERROR: Invalid bit depth of ${bitdepth} specified. Valid values are 8 or 10. Aborting."
@@ -166,7 +178,8 @@ fun_transcode () {
   # Added channel layouts to ffmpeg commands to work around
   # the following ffmpeg libopus defect:
   # https://trac.ffmpeg.org/ticket/5718
-  if (( ${width} > 1920 )); then
+  # If the source video is HDR, use the following encoding parameters:
+  if [ ${sourcecolorprimaries} == "BT.2020" ]; then
     # Uncomment to debug
     # FFREPORT=file=/output/ffreport-$(date -d "today" +"%Y%m%d%H%M").log \
     /app/${encoderbinary} \
