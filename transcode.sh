@@ -18,7 +18,7 @@ inputdir=/input
 outputdir=/output
 
 fun_slackpost () {
-  if  [[ -v $slackurl ]]; then
+  if ! [ -z "$slackurl" ]; then
     slackmsg="$1"
     case "$2" in
       INFO)
@@ -64,6 +64,7 @@ fun_videoinfo () {
   echo "width=${width}"
   echo "crf=${crf}"
   echo "output=${output}"
+  echo "slack url"=${slackurl}
 }
 
 # Transcoding function
