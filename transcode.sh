@@ -97,7 +97,7 @@ fun_transcode () {
       echo "WARNING: Short video detected. Using cropscan fallback values (scan at the 75 second mark for 30 seconds)."
       echo "         Adjust your cropscan values if the fallback times are not suitable for your video."
     fi
-    if [ ${sourcecolorprimaries} != "BT.2020" ]; then
+    if [[ ${sourcecolorprimaries} != "BT.2020" ]]; then
       vidcrop=$(/app/${encoderbinary} -ss "${workingcropscanstart}" -i "${input}" -f matroska -t "${workingcropscanlength}" -an -vf cropdetect=24:16:0 -y -crf 51 -preset ultrafast /dev/null 2>&1 | grep -o crop=.* | sort -bh | uniq -c | sort -bh | tail -n1 | grep -o crop=.*)
     # Adjust black levels in cropdetect for hdr
     else
