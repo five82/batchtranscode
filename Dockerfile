@@ -1,5 +1,5 @@
 # Use Ubuntu as a base image
-FROM ubuntu:18.04
+FROM ubuntu:18.10
 
 # Environment variables
 ENV encoder=x265 \
