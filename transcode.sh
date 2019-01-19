@@ -72,12 +72,21 @@ fun_transcode () {
 
   # Analyze input video
   encoderbinary="ffmpeg"
+<<<<<<< HEAD
+  tracks=$(ffprobe -show_entries format=nb_streams -v 0 -of compact=p=0:nk=1 "${input}")
+  atracks=$(ffprobe -i "${input}" -v 0 -select_streams a -show_entries stream=index -of compact=p=0:nk=1 | wc -l)
+  stracks=$(ffprobe -i "${input}" -v 0 -select_streams s -show_entries stream=index -of compact=p=0:nk=1 | wc -l)
+  sourcevidduration=$(ffprobe -i "${input}" -show_format -v quiet | sed -n 's/duration=//p' | xargs printf %.0f)
+  sourcecolorprimaries=$(mediainfo --Inform="Video;%colour_primaries%" "${input}")
+  eval $(ffprobe -v error -of flat=s=_ -select_streams v:0 -show_entries stream=width "${input}")
+=======
   tracks=$(/app/ffprobe -show_entries format=nb_streams -v 0 -of compact=p=0:nk=1 "${input}")
   atracks=$(/app/ffprobe -i "${input}" -v 0 -select_streams a -show_entries stream=index -of compact=p=0:nk=1 | wc -l)
   stracks=$(/app/ffprobe -i "${input}" -v 0 -select_streams s -show_entries stream=index -of compact=p=0:nk=1 | wc -l)
   sourcevidduration=$(/app/ffprobe -i "${input}" -show_format -v quiet | sed -n 's/duration=//p' | xargs printf %.0f)
   sourcecolorprimaries=$(mediainfo --Inform="Video;%colour_primaries%" "${input}")
   eval $(/app/ffprobe -v error -of flat=s=_ -select_streams v:0 -show_entries stream=width "${input}")
+>>>>>>> master
   width=${streams_stream_0_width}
 
   # Crop black bars
@@ -98,10 +107,17 @@ fun_transcode () {
       echo "         Adjust your cropscan values if the fallback times are not suitable for your video."
     fi
     if [[ ${sourcecolorprimaries} != "BT.2020" ]]; then
+<<<<<<< HEAD
+      vidcrop=$(${encoderbinary} -ss "${workingcropscanstart}" -i "${input}" -f matroska -t "${workingcropscanlength}" -an -vf cropdetect=24:16:0 -y -crf 51 -preset ultrafast /dev/null 2>&1 | grep -o crop=.* | sort -b | uniq -c | sort -b | tail -n1 | grep -o crop=.*)
+    # Adjust black levels in cropdetect for hdr
+    else
+      vidcrop=$(${encoderbinary} -ss "${workingcropscanstart}" -i "${input}" -f matroska -t "${workingcropscanlength}" -an -vf cropdetect=150:16:0 -y -crf 51 -preset ultrafast /dev/null 2>&1 | grep -o crop=.* | sort -b | uniq -c | sort -b | tail -n1 | grep -o crop=.*)
+=======
       vidcrop=$(/app/${encoderbinary} -ss "${workingcropscanstart}" -i "${input}" -f matroska -t "${workingcropscanlength}" -an -vf cropdetect=24:16:0 -y -crf 51 -preset ultrafast /dev/null 2>&1 | grep -o crop=.* | sort -bh | uniq -c | sort -bh | tail -n1 | grep -o crop=.*)
     # Adjust black levels in cropdetect for hdr
     else
       vidcrop=$(/app/${encoderbinary} -ss "${workingcropscanstart}" -i "${input}" -f matroska -t "${workingcropscanlength}" -an -vf cropdetect=150:16:0 -y -crf 51 -preset ultrafast /dev/null 2>&1 | grep -o crop=.* | sort -bh | uniq -c | sort -bh | tail -n1 | grep -o crop=.*)
+>>>>>>> master
     fi
   else
     # Don't crop
@@ -154,7 +170,11 @@ fun_transcode () {
   j=0
   audioargs=()
   while [ $j -lt $atracks ]; do
+<<<<<<< HEAD
+    channels=$(ffprobe -v error -select_streams a:$j -show_entries stream=channels -of default=nokey=1:noprint_wrappers=1 "${input}")
+=======
     channels=$(/app/ffprobe -v error -select_streams a:$j -show_entries stream=channels -of default=nokey=1:noprint_wrappers=1 "${input}")
+>>>>>>> master
     # Determine bitrate based on number of channels
     if [ ${channels} == 2 ]; then
       abitrate=${stereobitrate}
@@ -183,7 +203,11 @@ fun_transcode () {
   if [ ${sourcecolorprimaries} == "BT.2020" ]; then
     # Uncomment to debug
     # FFREPORT=file=/output/ffreport-$(date -d "today" +"%Y%m%d%H%M").log \
+<<<<<<< HEAD
+    ${encoderbinary} \
+=======
     /app/${encoderbinary} \
+>>>>>>> master
       -i ${input} \
       -vf ${vidcrop} \
       ${mapargs[@]} \
@@ -200,7 +224,11 @@ fun_transcode () {
   else
     # Uncomment to debug
     # FFREPORT=file=/output/ffreport-$(date -d "today" +"%Y%m%d%H%M").log \
+<<<<<<< HEAD
+    ${encoderbinary} \
+=======
     /app/${encoderbinary} \
+>>>>>>> master
       -i ${input} \
       -vf ${vidcrop} \
       ${mapargs[@]} \
