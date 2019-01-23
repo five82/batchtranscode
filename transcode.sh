@@ -76,7 +76,7 @@ fun_transcode () {
   atracks=$(ffprobe -i "${input}" -v 0 -select_streams a -show_entries stream=index -of compact=p=0:nk=1 | wc -l)
   stracks=$(ffprobe -i "${input}" -v 0 -select_streams s -show_entries stream=index -of compact=p=0:nk=1 | wc -l)
   sourcevidduration=$(ffprobe -i "${input}" -show_format -v quiet | sed -n 's/duration=//p' | xargs printf %.0f)
-  sourcecolorprimaries=$(mediainfo --Inform="Video;%colour_primaries%" "${input}")
+  sourcecolorprimaries=$(ffprobe -i "${input}" -show_streams -v quiet | sed -n 's/color_primaries=//p' | xargs printf %s)
   eval $(ffprobe -v error -of flat=s=_ -select_streams v:0 -show_entries stream=width "${input}")
   width=${streams_stream_0_width}
 
@@ -97,7 +97,7 @@ fun_transcode () {
       echo "WARNING: Short video detected. Using cropscan fallback values (scan at the 75 second mark for 30 seconds)."
       echo "         Adjust your cropscan values if the fallback times are not suitable for your video."
     fi
-    if [[ ${sourcecolorprimaries} != "BT.2020" ]]; then
+    if [[ ${sourcecolorprimaries} != "bt2020" ]]; then
       vidcrop=$(${encoderbinary} -ss "${workingcropscanstart}" -i "${input}" -f matroska -t "${workingcropscanlength}" -an -vf cropdetect=24:16:0 -y -crf 51 -preset ultrafast /dev/null 2>&1 | grep -o crop=.* | sort -b | uniq -c | sort -b | tail -n1 | grep -o crop=.*)
     # Adjust black levels in cropdetect for hdr
     else
@@ -180,7 +180,7 @@ fun_transcode () {
   # the following ffmpeg libopus defect:
   # https://trac.ffmpeg.org/ticket/5718
   # If the source video is HDR, use the following encoding parameters:
-  if [ ${sourcecolorprimaries} == "BT.2020" ]; then
+  if [ ${sourcecolorprimaries} == "bt2020" ]; then
     # Uncomment to debug
     # FFREPORT=file=/output/ffreport-$(date -d "today" +"%Y%m%d%H%M").log \
     ${encoderbinary} \

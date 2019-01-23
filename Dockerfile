@@ -23,9 +23,6 @@ WORKDIR /app
 ADD . /app
 
 RUN \
-# Install dependencies
-apk add --no-cache --update \
-  mediainfo && \
 # Set transcode script as executable
 chmod +x /app/transcode.sh
 
