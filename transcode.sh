@@ -86,7 +86,7 @@ fun_transcode () {
     workingcropscanstart=${cropscanstart}
     workingcropscanlength=${cropscanlength}
     # Exit if the video is shorter than our fallback values
-    if (( ${sourcevidduration} < 85 )); then
+    if (( ${sourcevidduration} < 85 )) && (( ${croplength} > 85 )); then
       echo "ERROR: Video length is shorter than 85 seconds. Adjust the cropscan values or set cropblackbars to false. Aborting."
       exit
     fi
