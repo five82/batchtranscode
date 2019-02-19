@@ -226,13 +226,13 @@ while read input <&3; do
   workingfilename=$(basename "${input}")
   outputdir=$(echo ${workingdir} | sed -e "s/\input/output/g")
   output="${outputdir}/${workingfilename}"
-  echo "INFO: Transcoding ${input}."
   if [ ! ${input: -4} == ".mkv" ]; then
     echo "WARNING: ${input} is not an MKV file. Other video file containers have not been tested and may not transcode correctly."
   fi
   if [ -f ${output} ]; then
     echo "WARNING: ${output} already exists. Skipping transcode job."
   else
+    echo "INFO: Transcoding ${input}."
     fun_transcode
   fi
 done 3< pipefile
