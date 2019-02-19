@@ -23,6 +23,8 @@ WORKDIR /app
 ADD . /app
 
 RUN \
+# Add required packages
+apk add --no-cache --update rsync && \
 # Set transcode script as executable
 chmod +x /app/transcode.sh
 

@@ -41,7 +41,10 @@ fun_slackpost () {
 fun_videoinfo () {
   echo "Video info:"
   echo "input=${input}"
-  echo "input file name=${inputfilename}"
+  echo "output=${output}"
+  echo "input file name=${workingfilename}"
+  echo "working directory"=${workingdir}
+  echo "output directory"=${outputdir}
   echo "bit depth=${bitdepth}"
   echo "crop black bars=${cropblackbars}"
   echo "crop scan start=${workingcropscanstart}"
@@ -63,7 +66,6 @@ fun_videoinfo () {
   echo "source color primaries=${sourcecolorprimaries}"
   echo "width=${width}"
   echo "crf=${crf}"
-  echo "output=${output}"
   echo "slack url"=${slackurl}
 }
 
@@ -108,10 +110,6 @@ fun_transcode () {
     vidcrop="crop=in_w:in_h"
   fi
 
-  # Determine output file name
-  inputfilename=$(basename "${input}")
-  output="${outputdir}/${inputfilename}"
-
   # Set crf based on video width
   if (( ${width} < 1250 )); then
     crf=${sdcrf}
@@ -144,7 +142,7 @@ fun_transcode () {
   fi
 
   # Encode
-  fun_slackpost "Starting encode: $inputfilename" "INFO"
+  fun_slackpost "Starting encode: $workingfilename" "INFO"
   i=0
   mapargs=()
   while [ $i -lt $tracks ]; do
@@ -163,7 +161,7 @@ fun_transcode () {
     elif [ ${channels} == 8 ]; then
       abitrate=${surrsevenonebitrate}
     else
-      echo "ERROR: Invalid channel number ${channels} in audio track of ${inputfilename}. Aborting."
+      echo "ERROR: Invalid channel number ${channels} in audio track of ${workingfilename}. Aborting."
       exit
     fi
     audioargs+=(-c:a:$j ${audioencoder} -b:a:$j ${abitrate})
@@ -214,17 +212,30 @@ fun_transcode () {
       ${subtitleargs[@]} \
       ${output}
   fi
-  fun_slackpost "Finished encode: $inputfilename" "INFO"
+  fun_slackpost "Finished encode: $workingfilename" "INFO"
 }
 
-# Transcode each file in the input directory
-count=0
+# Transcode each file in the input directory tree
+rsync -a -f"+ */" -f"- *" "${inputdir}/" "${outputdir}/"
 SAVEIFS=$IFS
 IFS=$(echo -en "\n\b")
-for input in ${inputdir}/*.mkv; do
-  count=$(( $count+1 ))
-  echo "INFO: Transcode $count. File: ${input}."
-  fun_transcode
-done
+mkfifo pipefile
+find ${inputdir} -type f > pipefile &
+while read input <&3; do
+  workingdir="${input%/*}"
+  workingfilename=$(basename "${input}")
+  outputdir=$(echo ${workingdir} | sed -e "s/\input/output/g")
+  output="${outputdir}/${workingfilename}"
+  echo "INFO: Transcoding ${input}."
+  if [ ! ${input: -4} == ".mkv" ]; then
+    echo "WARNING: ${input} is not an MKV file. Other video file containers have not been tested and may not transcode correctly."
+  fi
+  if [ -f ${output} ]; then
+    echo "WARNING: ${output} already exists. Skipping transcode job."
+  else
+    fun_transcode
+  fi
+done 3< pipefile
+rm pipefile
 fun_slackpost "Job complete." "INFO"
 IFS=$SAVEIFS
