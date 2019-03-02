@@ -227,7 +227,7 @@ while read input <&3; do
   outputdir=$(echo ${workingdir} | sed -e "s/\input/output/g")
   output="${outputdir}/${workingfilename}"
   if [ ! ${input: -4} == ".mkv" ]; then
-    echo "WARNING: ${input} is not an MKV file. Other video file containers have not been tested and may not transcode correctly."
+    echo "WARNING: ${input} is not an MKV file. Other video file containers have not been tested and may not encode correctly."
   fi
   if [ -f ${output} ]; then
     echo "WARNING: ${output} already exists. Skipping transcode job."
