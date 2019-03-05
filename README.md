@@ -30,7 +30,7 @@ You can also put nested directories containing files into your input directory a
 
 ### Notes
 
-*The script will crop black bars by default. To disable cropping, see the ```cropblackbars``` optional parameter below.*
+The script will crop black bars by default. To disable cropping, see the ```cropblackbars``` optional parameter below.
 
 ### Optional parameters
 
