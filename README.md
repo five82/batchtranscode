@@ -28,6 +28,10 @@ Create input and output directories. Add all video files that you want to encode
 
 You can also put nested directories containing files into your input directory and batchtranscode will recreate the directory and file structure under the output directory.
 
+### Notes
+
+*The script will crop black bars by default. To disable cropping, see the ```cropblackbars``` optional parameter below.*
+
 ### Optional parameters
 
 *The defaults below were selected because they are optimal for my own encodes. Set the encoder to "x264", bitdepth to "8", and audioencoder to "aac" to ensure maximum compatibility with most devices. (Please note: HDR10 videos require the x265 encoder and a bitdepth of 10.)*
