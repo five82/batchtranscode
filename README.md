@@ -36,8 +36,6 @@ You can also put nested directories containing files into your input directory a
 * ```-e bitdepth="value"```  Specifies the bitdepth of the encoded video. Options are ```"8"``` and ```"10"```. The default value is ```"10"```.
 * ```-e audioencoder="value"```  Specifies the encoder for all audio tracks. Options are ```"aac"``` and ```"libopus"```. The default value is ```"libopus"```. Other FFmpeg supported encoders may work but have not been tested.
 * ```-e cropblackbars="value"```  Automatically crops black bars in the encoded video. Options are ```"true"``` to enable and ```"false"``` to disable. The default value is ```"true"```.
-* ```-e cropscanstart="value"```  Only used if cropblackbars is enabled. The timestamp in seconds where the container starts scanning the size of the black bars that will be cropped. The default value is ```"600"```.
-* ```-e cropscanlength="value"```  Only used if cropblackbars is enabled. The duration in seconds where the container scans the size of the black bars that will be cropped. The default value is ```"120"```.
 * ```-e stereobitrate="value"```  Specifies the bitrate for stereo audio tracks. The default value is ```"128k"```.
 * ```-e surrfiveonebitrate="value"```  Specifies the bitrate for 5.1 channel audio tracks. The default value is ```"384k"```.
 * ```-e surrsevenonebitrate="value"```  Specifies the bitrate for 7.1 channel audio tracks. The default value is ```"512k```".
