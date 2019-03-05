@@ -18,9 +18,9 @@ The container does support transcoding UHD HDR10 videos.
 
 ### Usage
 
-Create input and output directories. Add all video files that you want to encode into your input directory. Start the docker container with the command below and it will sequentially encode each video in the directory. The container will stop when complete.
+Create input and output directories. Add all video files that you want to encode into your input directory. Start the docker container with the command below and it will sequentially encode each video in the directory. The container will terminate when complete.
 
-    docker run \
+    docker run --rm \
     --name batchtranscode \
     -v <path/to/input/dir>:/input \
     -v <path/to/output/dir>:/output \
