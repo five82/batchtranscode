@@ -107,16 +107,14 @@ fun_transcode () {
     cropscanarray[2]=$(( ${sourcevidduration}*45/100 ))
     cropscanarray[3]=$(( ${sourcevidduration}*6/10 ))
     cropscanarray[4]=$(( ${sourcevidduration}*75/100 ))
-    # Adjust black levels in cropdetect for hdr
-    if [[ ${sourcecolorprimaries} = "bt2020" ]]; then
-      cropdetect="cropdetect=150:16:0"
-    else
-      cropdetect="cropdetect=24:16:0"
-    fi
     vidcroparray=()
     for k in {0..4}
     do
-      vidcroparray[$k]=$(${encoderbinary} -ss "${cropscanarray[$k]}" -i "${input}" -f matroska -t "10" -an -vf ${cropdetect} -y -crf 51 -preset ultrafast /dev/null 2>&1 | grep -o crop=.* | sort -b | uniq -c | sort -b | tail -n1 | grep -o crop=.*)
+      if [[ ${sourcecolorprimaries} = "bt2020" ]]; then
+        vidcroparray[$k]=$(${encoderbinary} -ss "${cropscanarray[$k]}" -i "${input}" -f matroska -t "10" -an -sn -y -tag:v hvc1 -vf cropdetect=24:16:0 -c:v libx265 -crf 25 -preset ultrafast -pix_fmt yuv420p10le -x265-params "colorprim=bt2020:transfer=smpte2084:colormatrix=bt2020nc" /dev/null 2>&1 | grep -o crop=.* | sort -b | uniq -c | sort -b | tail -n1 | grep -o crop=.*)
+      else
+        vidcroparray[$k]=$(${encoderbinary} -ss "${cropscanarray[$k]}" -i "${input}" -f matroska -t "10" -an -sn -vf cropdetect=24:16:0 -y -crf 25 -preset ultrafast /dev/null 2>&1 | grep -o crop=.* | sort -b | uniq -c | sort -b | tail -n1 | grep -o crop=.*)
+      fi
     done
     vidbasestring=${vidcroparray[0]}
     fun_vidcompare
