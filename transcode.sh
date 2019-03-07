@@ -17,6 +17,10 @@
 inputdir=/input
 outputdir=/output
 
+fun_timestamp () {
+  date +"%T"
+}
+
 fun_slackpost () {
   if ! [ -z "$slackurl" ]; then
     slackmsg="$1"
@@ -34,7 +38,8 @@ fun_slackpost () {
         slackicon=':slack:'
         ;;
     esac
-    curl -X POST --data "payload={\"text\": \"${slackicon} ${slackmsg}\"}" ${slackurl}
+    curl --fail --silent --show-error -X POST --data "payload={\"text\": \"${slackicon} $(fun_timestamp) UTC - ${slackmsg}\"}" ${slackurl} > /dev/null
+
   fi
 }
 
@@ -101,6 +106,7 @@ fun_transcode () {
   # Scan the video at five different timestamps.
   # If the crop values of the majority match, consider the result valid.
   if [ ${cropblackbars} == "true" ]; then
+    echo "INFO: Determining black bar crop values."
     cropscanarray=()
     cropscanarray[0]=$(( ${sourcevidduration}*15/100 ))
     cropscanarray[1]=$(( ${sourcevidduration}*3/10 ))
@@ -127,8 +133,9 @@ fun_transcode () {
       fun_vidcompare
     fi
     if [[ -z ${vidcrop} ]]; then
-      echo "ERROR: Crop detection failed. Could not find a valid crop value. Skipping transcode job."
+      echo "ERROR: Crop detection failed for ${input}. Could not find a valid crop value. Skipping transcode job."
       echo "Crop values: ${vidcroparray[@]}"
+      fun_slackpost "ERROR: Crop detection failed for ${input}. Could not find a valid crop value. Skipping transcode job." "ERROR"
       return 0
     fi
   else
@@ -152,6 +159,7 @@ fun_transcode () {
     pixformat="yuv420p10le"
   else
     echo "ERROR: Invalid bit depth of ${bitdepth} specified. Valid values are 8 or 10. Aborting."
+    fun_slackpost "ERROR: Invalid bit depth of ${bitdepth} specified. Valid values are 8 or 10. Aborting." "ERROR"
     exit
   fi
 
@@ -164,10 +172,12 @@ fun_transcode () {
     encoderparams="-x265-params"
   else
     echo "ERROR: Invalid encoder ${encoder} specified. Set the encoder to x264 or x265. Aborting."
+    fun_slackpost "ERROR: Invalid encoder ${encoder} specified. Set the encoder to x264 or x265. Aborting." "ERROR"
     exit
   fi
 
   # Encode
+  echo "INFO: Starting encode: $workingfilename"
   fun_slackpost "Starting encode: $workingfilename" "INFO"
   i=0
   mapargs=()
@@ -187,8 +197,9 @@ fun_transcode () {
     elif [ ${channels} == 8 ]; then
       abitrate=${surrsevenonebitrate}
     else
-      echo "ERROR: Invalid channel number ${channels} in audio track of ${workingfilename}. Aborting."
-      exit
+      echo "ERROR: Invalid channel number ${channels} in audio track of ${workingfilename}. Skipping job."
+      fun_slackpost "ERROR: Invalid channel number ${channels} in audio track of ${workingfilename}. Skipping job." "ERROR"
+      return 0
     fi
     audioargs+=(-c:a:$j ${audioencoder} -b:a:$j ${abitrate})
     let j=j+1
@@ -238,10 +249,13 @@ fun_transcode () {
       ${subtitleargs[@]} \
       ${output}
   fi
+  echo "INFO: Finished encode: $workingfilename"
   fun_slackpost "Finished encode: $workingfilename" "INFO"
 }
 
 # Transcode each file in the input directory tree
+echo "INFO: Starting transcode queue jobs."
+fun_slackpost "Starting transcode queue jobs." "INFO"
 rsync -a -f"+ */" -f"- *" "${inputdir}/" "${outputdir}/"
 SAVEIFS=$IFS
 IFS=$(echo -en "\n\b")
@@ -254,14 +268,16 @@ while read input <&3; do
   output="${outputdir}/${workingfilename}"
   if [ ! ${input: -4} == ".mkv" ]; then
     echo "WARNING: ${input} is not an MKV file. Other video file containers have not been tested and may not encode correctly."
+    fun_slackpost "WARNING: ${input} is not an MKV file. Other video file containers have not been tested and may not encode correctly." "WARNING"
   fi
   if [ -f ${output} ]; then
     echo "WARNING: ${output} already exists. Skipping transcode job."
+    fun_slackpost "WARNING: ${output} already exists. Skipping transcode job." "WARNING"
   else
-    echo "INFO: Transcoding ${input}."
     fun_transcode
   fi
 done 3< pipefile
 rm pipefile
-fun_slackpost "Job complete." "INFO"
+echo "INFO: All jobs in transcode queue are finished."
+fun_slackpost "All jobs in transcode queue are finished." "INFO"
 IFS=$SAVEIFS
