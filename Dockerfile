@@ -12,9 +12,7 @@ ENV encoder=x265 \
     hdcrf=21 \
     sdcrf=20 \
     preset=medium \
-    cropblackbars=true \
-    cropscanstart=600 \
-    cropscanlength=120
+    cropblackbars=true
 
 # Set the working directory to /app
 WORKDIR /app

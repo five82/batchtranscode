@@ -47,11 +47,13 @@ fun_videoinfo () {
   echo "output directory"=${outputdir}
   echo "bit depth=${bitdepth}"
   echo "crop black bars=${cropblackbars}"
-  echo "crop scan start=${workingcropscanstart}"
-  echo "crop scan length=${workingcropscanlength}"
-  echo "crop length=${croplength}"
   echo "encoder binary=${encoderbinary}"
   echo "video crop=${vidcrop}"
+  echo "vidcroparray0=${vidcroparray[0]}"
+  echo "vidcroparray1=${vidcroparray[1]}"
+  echo "vidcroparray2=${vidcroparray[2]}"
+  echo "vidcroparray3=${vidcroparray[3]}"
+  echo "vidcroparray4=${vidcroparray[4]}"
   echo "mapargs=${mapargs[@]}"
   echo "encoder library=${encoderlib}"
   echo "pixel format=$pixformat"
@@ -69,6 +71,19 @@ fun_videoinfo () {
   echo "slack url"=${slackurl}
 }
 
+fun_vidcompare () {
+  n=0
+  for l in {0..4}
+  do
+    if [ "${vidbasestring}" == "${vidcroparray[$l]}" ]; then
+      n=$(( $n+1 ))
+    fi
+  done
+  if [ "${n}" -ge "3" ]; then
+    vidcrop=${vidbasestring}
+  fi
+}
+
 # Transcoding function
 fun_transcode () {
 
@@ -83,27 +98,38 @@ fun_transcode () {
   width=${streams_stream_0_width}
 
   # Crop black bars
+  # Scan the video at five different timestamps.
+  # If the crop values of the majority match, consider the result valid.
   if [ ${cropblackbars} == "true" ]; then
-    croplength=$((${cropscanstart}+${cropscanlength}))
-    workingcropscanstart=${cropscanstart}
-    workingcropscanlength=${cropscanlength}
-    # Exit if the video is shorter than our fallback values
-    if (( ${sourcevidduration} < 85 )) && (( ${croplength} > 85 )); then
-      echo "ERROR: Video length is shorter than 85 seconds. Adjust the cropscan values or set cropblackbars to false. Aborting."
-      exit
+    cropscanarray=()
+    cropscanarray[0]=$(( ${sourcevidduration}*15/100 ))
+    cropscanarray[1]=$(( ${sourcevidduration}*3/10 ))
+    cropscanarray[2]=$(( ${sourcevidduration}*45/100 ))
+    cropscanarray[3]=$(( ${sourcevidduration}*6/10 ))
+    cropscanarray[4]=$(( ${sourcevidduration}*75/100 ))
+    vidcroparray=()
+    for k in {0..4}
+    do
+      if [[ ${sourcecolorprimaries} = "bt2020" ]]; then
+        vidcroparray[$k]=$(${encoderbinary} -ss "${cropscanarray[$k]}" -i "${input}" -f matroska -t "10" -an -sn -vf zscale=t=linear:npl=100,format=gbrpf32le,zscale=p=bt709,tonemap=tonemap=hable:desat=0,zscale=t=bt709:m=bt709:r=tv,format=yuv420p,cropdetect=24:16:0 -y -crf 25 -preset ultrafast /dev/null 2>&1 | grep -o crop=.* | sort -b | uniq -c | sort -b | tail -n1 | grep -o crop=.*)
+      else
+        vidcroparray[$k]=$(${encoderbinary} -ss "${cropscanarray[$k]}" -i "${input}" -f matroska -t "10" -an -sn -vf cropdetect=24:16:0 -y -crf 25 -preset ultrafast /dev/null 2>&1 | grep -o crop=.* | sort -b | uniq -c | sort -b | tail -n1 | grep -o crop=.*)
+      fi
+    done
+    vidbasestring=${vidcroparray[0]}
+    fun_vidcompare
+    if [[ -z ${vidcrop} ]]; then
+      vidbasestring=${vidcroparray[1]}
+      fun_vidcompare
     fi
-    # Use the fallback values if cropscanstart+cropscanlength exceeds the duration of the source video
-    if (( ${sourcevidduration} < ${croplength} )); then
-      workingcropscanstart=75
-      workingcropscanlength=30
-      echo "WARNING: Short video detected. Using cropscan fallback values (scan at the 75 second mark for 30 seconds)."
-      echo "         Adjust your cropscan values if the fallback times are not suitable for your video."
+    if [[ -z ${vidcrop} ]]; then
+      vidbasestring=${vidcroparray[2]}
+      fun_vidcompare
     fi
-    if [[ ${sourcecolorprimaries} != "bt2020" ]]; then
-      vidcrop=$(${encoderbinary} -ss "${workingcropscanstart}" -i "${input}" -f matroska -t "${workingcropscanlength}" -an -vf cropdetect=24:16:0 -y -crf 51 -preset ultrafast /dev/null 2>&1 | grep -o crop=.* | sort -b | uniq -c | sort -b | tail -n1 | grep -o crop=.*)
-    # Adjust black levels in cropdetect for hdr
-    else
-      vidcrop=$(${encoderbinary} -ss "${workingcropscanstart}" -i "${input}" -f matroska -t "${workingcropscanlength}" -an -vf cropdetect=150:16:0 -y -crf 51 -preset ultrafast /dev/null 2>&1 | grep -o crop=.* | sort -b | uniq -c | sort -b | tail -n1 | grep -o crop=.*)
+    if [[ -z ${vidcrop} ]]; then
+      echo "ERROR: Crop detection failed. Could not find a valid crop value. Skipping transcode job."
+      echo "Crop values: ${vidcroparray[@]}"
+      return 0
     fi
   else
     # Don't crop

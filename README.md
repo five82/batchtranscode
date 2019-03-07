@@ -18,15 +18,19 @@ The container does support transcoding UHD HDR10 videos.
 
 ### Usage
 
-Create input and output directories. Add all video files that you want to encode into your input directory. Start the docker container with the command below and it will sequentially encode each video in the directory. The container will stop when complete.
+Create input and output directories. Add all video files that you want to encode into your input directory. Start the docker container with the command below and it will sequentially encode each video in the directory. The container will terminate when complete.
 
-    docker run \
+    docker run --rm \
     --name batchtranscode \
     -v <path/to/input/dir>:/input \
     -v <path/to/output/dir>:/output \
     five82/batchtranscode
 
 You can also put nested directories containing files into your input directory and batchtranscode will recreate the directory and file structure under the output directory.
+
+### Notes
+
+The script will crop black bars by default. To disable cropping, see the ```cropblackbars``` optional parameter below.
 
 ### Optional parameters
 
@@ -36,8 +40,6 @@ You can also put nested directories containing files into your input directory a
 * ```-e bitdepth="value"```  Specifies the bitdepth of the encoded video. Options are ```"8"``` and ```"10"```. The default value is ```"10"```.
 * ```-e audioencoder="value"```  Specifies the encoder for all audio tracks. Options are ```"aac"``` and ```"libopus"```. The default value is ```"libopus"```. Other FFmpeg supported encoders may work but have not been tested.
 * ```-e cropblackbars="value"```  Automatically crops black bars in the encoded video. Options are ```"true"``` to enable and ```"false"``` to disable. The default value is ```"true"```.
-* ```-e cropscanstart="value"```  Only used if cropblackbars is enabled. The timestamp in seconds where the container starts scanning the size of the black bars that will be cropped. The default value is ```"600"```.
-* ```-e cropscanlength="value"```  Only used if cropblackbars is enabled. The duration in seconds where the container scans the size of the black bars that will be cropped. The default value is ```"120"```.
 * ```-e stereobitrate="value"```  Specifies the bitrate for stereo audio tracks. The default value is ```"128k"```.
 * ```-e surrfiveonebitrate="value"```  Specifies the bitrate for 5.1 channel audio tracks. The default value is ```"384k"```.
 * ```-e surrsevenonebitrate="value"```  Specifies the bitrate for 7.1 channel audio tracks. The default value is ```"512k```".
