@@ -3,18 +3,24 @@
 # ffmpeg batch transcode script
 # Author: five82
 # https://github.com/five82
-# Takes mkv files, analyzes, and batch transcodes automatically based on the following conditions:
+# Takes video files, analyzes, and batch transcodes automatically based on the following conditions:
 #   Number of audio tracks
 #   Number of channels in audio tracks. Set bitrate accordingly.
 #   Number of subtitle tracks
 #   Determines crf based on width of video - SD, HD, or 4K or higher resolutions
-# Supports transcoding of HDR10 videos
+# Supports transcoding UHD and HDR videos
 
 # LIMITATIONS:
-#   Source videos must be mkv. Use ffmpeg or MKVToolNix to remux.
+#   Transcoded videos will be MKV
+#   Non MKV input files will be copied and remuxed to MKV before being transcoded
+#   You must have enough free disk space in your intermediate directory for your largest non MKV input file
+
+# Encoder binary
+encoderbinary="ffmpeg"
 
 # Input and output directories:
 inputdir=/input
+intermediatedir=/intermediate
 outputdir=/output
 
 fun_timestamp () {
@@ -49,6 +55,7 @@ fun_videoinfo () {
   echo "output=${output}"
   echo "input file name=${workingfilename}"
   echo "working directory"=${workingdir}
+  echo "intermediate directory"=${intermediatedir}
   echo "output directory"=${outputdir}
   echo "bit depth=${bitdepth}"
   echo "crop black bars=${cropblackbars}"
@@ -93,7 +100,6 @@ fun_vidcompare () {
 fun_transcode () {
 
   # Analyze input video
-  encoderbinary="ffmpeg"
   tracks=$(ffprobe -show_entries format=nb_streams -v 0 -of compact=p=0:nk=1 "${input}")
   atracks=$(ffprobe -i "${input}" -v 0 -select_streams a -show_entries stream=index -of compact=p=0:nk=1 | wc -l)
   stracks=$(ffprobe -i "${input}" -v 0 -select_streams s -show_entries stream=index -of compact=p=0:nk=1 | wc -l)
@@ -266,15 +272,24 @@ while read input <&3; do
   workingfilename=$(basename "${input}")
   outputdir=$(echo ${workingdir} | sed -e "s/\input/output/g")
   output="${outputdir}/${workingfilename}"
+  # If the input is not an MKV file, copy and remux it to MKV.
+  echo "Remuxing ${workingfilename} into an MKV container."
   if [ ! ${input: -4} == ".mkv" ]; then
-    echo "WARNING: ${input} is not an MKV file. Other video file containers have not been tested and may not encode correctly."
-    fun_slackpost "WARNING: ${input} is not an MKV file. Other video file containers have not been tested and may not encode correctly." "WARNING"
+    ${encoderbinary}  \
+      -i ${input}  \
+      -c copy \
+      "${intermediatedir}/${workingfilename%.*}.mkv"
+    input="${intermediatedir}/${workingfilename%.*}.mkv"
+    output="${outputdir}/${workingfilename%.*}.mkv"
+    workingdir=${intermediatedir}
   fi
   if [ -f ${output} ]; then
     echo "WARNING: ${output} already exists. Skipping transcode job."
     fun_slackpost "WARNING: ${output} already exists. Skipping transcode job." "WARNING"
+    rm -rf ${intermediatedir}/*
   else
     fun_transcode
+    rm -rf ${intermediatedir}/*
   fi
 done 3< pipefile
 rm pipefile
