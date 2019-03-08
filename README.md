@@ -4,13 +4,14 @@ Available on Docker Hub at https://hub.docker.com/r/five82/batchtranscode/
 
 ```docker pull five82/batchtranscode```
 
-Takes mkv files, analyzes, and batch transcodes automatically using FFmpeg based on the following conditions:
+Takes video files, analyzes, and batch transcodes automatically using FFmpeg based on the following conditions:
   - Number of audio tracks
   - Number of channels in audio tracks. Set bitrate accordingly.
   - Number of subtitle tracks
   - Determines crf based on width of video - SD, HD, or 4K
 
-The container does support transcoding UHD HDR10 videos.
+All output files will be MKV. Use FFmpeg or other tools to remux if you need a different video container.
+The script does support transcoding UHD and HDR videos.
 
 ### Description
 
@@ -18,11 +19,12 @@ The container does support transcoding UHD HDR10 videos.
 
 ### Usage
 
-Create input and output directories. Add all video files that you want to encode into your input directory. Start the docker container with the command below and it will sequentially encode each video in the directory. The container will terminate when complete.
+Create input, intermediate, and output directories. Add all video files that you want to encode into your input directory. Start the docker container with the command below and it will sequentially encode each video in the directory. The container will terminate when complete.
 
     docker run --rm \
     --name batchtranscode \
     -v <path/to/input/dir>:/input \
+    -v <path/to/intermediate/dir>:/intermediate \
     -v <path/to/output/dir>:/output \
     five82/batchtranscode
 
@@ -31,6 +33,8 @@ You can also put nested directories containing files into your input directory a
 ### Notes
 
 The script will crop black bars by default. To disable cropping, see the ```cropblackbars``` optional parameter below.
+
+Mapping the intermediate directory is only required if you are transcoding non MKV input files. Batchtranscode will copy and remux the file into an MKV container before transcoding. You will need enough free disk space in your intermediate directory for your largest non MKV input file.
 
 ### Optional parameters
 
