@@ -273,8 +273,8 @@ while read input <&3; do
   outputdir=$(echo ${workingdir} | sed -e "s/\input/output/g")
   output="${outputdir}/${workingfilename}"
   # If the input is not an MKV file, copy and remux it to MKV.
-  echo "Remuxing ${workingfilename} into an MKV container."
   if [ ! ${input: -4} == ".mkv" ]; then
+    echo "INFO: Remuxing ${workingfilename} into an MKV container."
     ${encoderbinary}  \
       -i ${input}  \
       -c copy \
