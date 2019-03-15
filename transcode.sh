@@ -112,37 +112,41 @@ fun_transcode () {
   # Scan the video at five different timestamps.
   # If the crop values of the majority match, consider the result valid.
   if [ ${cropblackbars} == "true" ]; then
-    echo "INFO: Determining black bar crop values."
-    cropscanarray=()
-    cropscanarray[0]=$(( ${sourcevidduration}*15/100 ))
-    cropscanarray[1]=$(( ${sourcevidduration}*3/10 ))
-    cropscanarray[2]=$(( ${sourcevidduration}*45/100 ))
-    cropscanarray[3]=$(( ${sourcevidduration}*6/10 ))
-    cropscanarray[4]=$(( ${sourcevidduration}*75/100 ))
-    vidcroparray=()
-    for k in {0..4}
-    do
-      if [[ ${sourcecolorprimaries} = "bt2020" ]]; then
-        vidcroparray[$k]=$(${encoderbinary} -ss "${cropscanarray[$k]}" -i "${input}" -f matroska -t "10" -an -sn -vf zscale=t=linear:npl=100,format=gbrpf32le,zscale=p=bt709,tonemap=tonemap=hable:desat=0,zscale=t=bt709:m=bt709:r=tv,format=yuv420p,cropdetect=24:16:0 -y -crf 25 -preset ultrafast /dev/null 2>&1 | grep -o crop=.* | sort -b | uniq -c | sort -b | tail -n1 | grep -o crop=.*)
-      else
-        vidcroparray[$k]=$(${encoderbinary} -ss "${cropscanarray[$k]}" -i "${input}" -f matroska -t "10" -an -sn -vf cropdetect=24:16:0 -y -crf 25 -preset ultrafast /dev/null 2>&1 | grep -o crop=.* | sort -b | uniq -c | sort -b | tail -n1 | grep -o crop=.*)
+    if ! [ -z "${crop}" ]; then
+      vidcrop="crop=${crop}"
+    else
+      echo "INFO: Determining black bar crop values."
+      cropscanarray=()
+      cropscanarray[0]=$(( ${sourcevidduration}*15/100 ))
+      cropscanarray[1]=$(( ${sourcevidduration}*3/10 ))
+      cropscanarray[2]=$(( ${sourcevidduration}*45/100 ))
+      cropscanarray[3]=$(( ${sourcevidduration}*6/10 ))
+      cropscanarray[4]=$(( ${sourcevidduration}*75/100 ))
+      vidcroparray=()
+      for k in {0..4}
+      do
+        if [[ ${sourcecolorprimaries} = "bt2020" ]]; then
+          vidcroparray[$k]=$(${encoderbinary} -ss "${cropscanarray[$k]}" -i "${input}" -f matroska -t "10" -an -sn -vf zscale=t=linear:npl=100,format=gbrpf32le,zscale=p=bt709,tonemap=tonemap=hable:desat=0,zscale=t=bt709:m=bt709:r=tv,format=yuv420p,cropdetect=24:16:0 -y -crf 25 -preset ultrafast /dev/null 2>&1 | grep -o crop=.* | sort -b | uniq -c | sort -b | tail -n1 | grep -o crop=.*)
+        else
+          vidcroparray[$k]=$(${encoderbinary} -ss "${cropscanarray[$k]}" -i "${input}" -f matroska -t "10" -an -sn -vf cropdetect=24:16:0 -y -crf 25 -preset ultrafast /dev/null 2>&1 | grep -o crop=.* | sort -b | uniq -c | sort -b | tail -n1 | grep -o crop=.*)
+        fi
+      done
+      vidbasestring=${vidcroparray[0]}
+      fun_vidcompare
+      if [[ -z ${vidcrop} ]]; then
+        vidbasestring=${vidcroparray[1]}
+        fun_vidcompare
       fi
-    done
-    vidbasestring=${vidcroparray[0]}
-    fun_vidcompare
-    if [[ -z ${vidcrop} ]]; then
-      vidbasestring=${vidcroparray[1]}
-      fun_vidcompare
-    fi
-    if [[ -z ${vidcrop} ]]; then
-      vidbasestring=${vidcroparray[2]}
-      fun_vidcompare
-    fi
-    if [[ -z ${vidcrop} ]]; then
-      echo "ERROR: Crop detection failed for ${input}. Could not find a valid crop value. Skipping transcode job."
-      echo "Crop values: ${vidcroparray[@]}"
-      fun_slackpost "ERROR: Crop detection failed for ${input}. Could not find a valid crop value. Skipping transcode job." "ERROR"
-      return 0
+      if [[ -z ${vidcrop} ]]; then
+        vidbasestring=${vidcroparray[2]}
+        fun_vidcompare
+      fi
+      if [[ -z ${vidcrop} ]]; then
+        echo "ERROR: Crop detection failed for ${input}. Could not find a valid crop value. Skipping transcode job."
+        echo "Crop values: ${vidcroparray[@]}"
+        fun_slackpost "ERROR: Crop detection failed for ${input}. Could not find a valid crop value. Skipping transcode job." "ERROR"
+        return 0
+      fi
     fi
   else
     # Don't crop
