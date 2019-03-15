@@ -130,6 +130,12 @@ fun_transcode () {
         else
           vidcroparray[$k]=$(${encoderbinary} -ss "${cropscanarray[$k]}" -i "${input}" -f matroska -t "10" -an -sn -vf cropdetect=24:16:0 -y -crf 25 -preset ultrafast /dev/null 2>&1 | grep -o crop=.* | sort -b | uniq -c | sort -b | tail -n1 | grep -o crop=.*)
         fi
+        # Replace the first and third numeric values from cropdetect with the width of the video and zero.
+        # These are known values so we don't need to detect and compare them.
+        vidcroparray[$k]=${vidcroparray[$k]:5}
+        atemp="$(cut -d':' -f2 <<<${vidcroparray[$k]})"
+        btemp="$(cut -d':' -f4 <<<${vidcroparray[$k]})"
+        vidcroparray[$k]="crop=${width}:${atemp}:0:${btemp}"
       done
       vidbasestring=${vidcroparray[0]}
       fun_vidcompare
