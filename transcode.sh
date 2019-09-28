@@ -272,6 +272,7 @@ fun_transcode () {
       ${audioargs[@]} \
       ${subtitleargs[@]} \
       ${output}
+  # If the source video is SDR, use the following encoding parameters:
   else
     # Uncomment to debug
     # FFREPORT=file=/output/ffreport-$(date -d "today" +"%Y%m%d%H%M").log \
