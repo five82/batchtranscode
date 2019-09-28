@@ -66,6 +66,10 @@ fun_videoinfo () {
   echo "vidcroparray2=${vidcroparray[2]}"
   echo "vidcroparray3=${vidcroparray[3]}"
   echo "vidcroparray4=${vidcroparray[4]}"
+  echo "vidcroparray5=${vidcroparray[5]}"
+  echo "vidcroparray6=${vidcroparray[6]}"
+  echo "vidcroparray7=${vidcroparray[7]}"
+  echo "vidcroparray8=${vidcroparray[8]}"
   echo "mapargs=${mapargs[@]}"
   echo "encoder library=${encoderlib}"
   echo "pixel format=$pixformat"
@@ -85,13 +89,13 @@ fun_videoinfo () {
 
 fun_vidcompare () {
   n=0
-  for l in {0..4}
+  for l in {0..8}
   do
     if [ "${vidbasestring}" == "${vidcroparray[$l]}" ]; then
       n=$(( $n+1 ))
     fi
   done
-  if [ "${n}" -ge "3" ]; then
+  if [ "${n}" -ge "5" ]; then
     vidcrop=${vidbasestring}
   fi
 }
@@ -109,7 +113,7 @@ fun_transcode () {
   width=${streams_stream_0_width}
 
   # Crop black bars
-  # Scan the video at five different timestamps.
+  # Scan the video at nine different timestamps.
   # If the crop values of the majority match, consider the result valid.
   if [ ${cropblackbars} == "true" ]; then
     if ! [ -z "${crop}" ]; then
@@ -118,18 +122,36 @@ fun_transcode () {
       echo "INFO: Determining black bar crop values."
       cropscanarray=()
       cropscanarray[0]=$(( ${sourcevidduration}*15/100 ))
-      cropscanarray[1]=$(( ${sourcevidduration}*3/10 ))
-      cropscanarray[2]=$(( ${sourcevidduration}*45/100 ))
-      cropscanarray[3]=$(( ${sourcevidduration}*6/10 ))
-      cropscanarray[4]=$(( ${sourcevidduration}*75/100 ))
+      cropscanarray[1]=$(( ${sourcevidduration}*23/100 ))
+      cropscanarray[2]=$(( ${sourcevidduration}*3/10 ))
+      cropscanarray[3]=$(( ${sourcevidduration}*38/100 ))
+      cropscanarray[4]=$(( ${sourcevidduration}*45/100 ))
+      cropscanarray[5]=$(( ${sourcevidduration}*53/100 ))
+      cropscanarray[6]=$(( ${sourcevidduration}*6/10 ))
+      cropscanarray[7]=$(( ${sourcevidduration}*68/100 ))
+      cropscanarray[8]=$(( ${sourcevidduration}*75/100 ))
       vidcroparray=()
-      for k in {0..4}
+      for k in {0..8}
       do
         if [[ ${sourcecolorprimaries} = "bt2020" ]]; then
           vidcroparray[$k]=$(${encoderbinary} -ss "${cropscanarray[$k]}" -i "${input}" -f matroska -t "10" -an -sn -vf zscale=t=linear:npl=100,format=gbrpf32le,zscale=p=bt709,tonemap=tonemap=hable:desat=0,zscale=t=bt709:m=bt709:r=tv,format=yuv420p,cropdetect=24:16:0 -y -crf 25 -preset ultrafast /dev/null 2>&1 | grep -o crop=.* | sort -b | uniq -c | sort -b | tail -n1 | grep -o crop=.*)
         else
           vidcroparray[$k]=$(${encoderbinary} -ss "${cropscanarray[$k]}" -i "${input}" -f matroska -t "10" -an -sn -vf cropdetect=24:16:0 -y -crf 25 -preset ultrafast /dev/null 2>&1 | grep -o crop=.* | sort -b | uniq -c | sort -b | tail -n1 | grep -o crop=.*)
         fi
+        # Round the video width off if it is close to 1920 or 3840 pixels to prevent unnecessary scaling.
+        # This will also increase the probability of cropscan matches.
+        vidcroparray[$k]=${vidcroparray[$k]:5}
+        atemp="$(cut -d':' -f1 <<<${vidcroparray[$k]})"
+        btemp="$(cut -d':' -f2 <<<${vidcroparray[$k]})"
+        ctemp="$(cut -d':' -f3 <<<${vidcroparray[$k]})"
+        dtemp="$(cut -d':' -f4 <<<${vidcroparray[$k]})"
+        if ((${atemp} >= 3830 && ${atemp} <= 3839)); then
+          ${atemp}=3840
+        fi
+        if ((${atemp} >= 1910 && ${atemp} <= 1919)); then
+          ${atemp}=1920
+        fi
+        vidcroparray[$k]="crop=${atemp}:${btemp}:${ctemp}:${dtemp}"
       done
       vidbasestring=${vidcroparray[0]}
       fun_vidcompare
@@ -139,6 +161,14 @@ fun_transcode () {
       fi
       if [[ -z ${vidcrop} ]]; then
         vidbasestring=${vidcroparray[2]}
+        fun_vidcompare
+      fi
+      if [[ -z ${vidcrop} ]]; then
+        vidbasestring=${vidcroparray[3]}
+        fun_vidcompare
+      fi
+      if [[ -z ${vidcrop} ]]; then
+        vidbasestring=${vidcroparray[4]}
         fun_vidcompare
       fi
       if [[ -z ${vidcrop} ]]; then
