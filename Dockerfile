@@ -12,7 +12,8 @@ ENV encoder=x265 \
     hdcrf=21 \
     sdcrf=20 \
     preset=medium \
-    cropblackbars=true
+    cropblackbars=true \
+    enablelogging=true
 
 # Set the working directory to /app
 WORKDIR /app

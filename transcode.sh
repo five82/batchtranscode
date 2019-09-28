@@ -23,9 +23,6 @@ inputdir=/input
 intermediatedir=/intermediate
 outputdir=/output
 
-fun_timestamp () {
-  date +"%T"
-}
 
 fun_slackpost () {
   if ! [ -z "$slackurl" ]; then
@@ -44,7 +41,7 @@ fun_slackpost () {
         slackicon=':slack:'
         ;;
     esac
-    curl --fail --silent --show-error -X POST --data "payload={\"text\": \"${slackicon} $(fun_timestamp) UTC - ${slackmsg}\"}" ${slackurl} > /dev/null
+    curl --fail --silent --show-error -X POST --data "payload={\"text\": \"${slackicon} $(date +"%T") UTC - ${slackmsg}\"}" ${slackurl} > /dev/null
 
   fi
 }
@@ -84,6 +81,7 @@ fun_videoinfo () {
   echo "source color primaries=${sourcecolorprimaries}"
   echo "width=${width}"
   echo "crf=${crf}"
+  echo "enablelogging=${enablelogging}"
   echo "slack url"=${slackurl}
 }
 
@@ -217,7 +215,7 @@ fun_transcode () {
   fi
 
   # Encode
-  echo "INFO: Starting encode: $workingfilename"
+  echo "INFO: $(date +"%m-%d-%Y %H:%M") UTC - Starting encode: $workingfilename"
   fun_slackpost "Starting encode: $workingfilename" "INFO"
   i=0
   mapargs=()
@@ -256,9 +254,8 @@ fun_transcode () {
   # https://trac.ffmpeg.org/ticket/5718
   # If the source video is HDR, use the following encoding parameters:
   if [ ${sourcecolorprimaries} == "bt2020" ]; then
-    # Uncomment to debug
-    # FFREPORT=file=/output/ffreport-$(date -d "today" +"%Y%m%d%H%M").log \
     ${encoderbinary} \
+      -nostats \
       -i ${input} \
       -vf ${vidcrop} \
       ${mapargs[@]} \
@@ -274,9 +271,8 @@ fun_transcode () {
       ${output}
   # If the source video is SDR, use the following encoding parameters:
   else
-    # Uncomment to debug
-    # FFREPORT=file=/output/ffreport-$(date -d "today" +"%Y%m%d%H%M").log \
     ${encoderbinary} \
+      -nostats \
       -i ${input} \
       -vf ${vidcrop} \
       ${mapargs[@]} \
@@ -290,7 +286,7 @@ fun_transcode () {
       ${subtitleargs[@]} \
       ${output}
   fi
-  echo "INFO: Finished encode: $workingfilename"
+  echo "INFO: $(date +"%m-%d-%Y %H:%M") UTC - Finished encode: $workingfilename"
   fun_slackpost "Finished encode: $workingfilename" "INFO"
 }
 
@@ -323,7 +319,11 @@ while read input <&3; do
     fun_slackpost "WARNING: ${output} already exists. Skipping transcode job." "WARNING"
     rm -rf ${intermediatedir}/*
   else
-    fun_transcode
+    if [ ${enablelogging} == "true" ]; then
+      fun_transcode 2>&1 | tee "${output%.*}"-$(date +"%Y%m%d%H%M").log
+    else
+      fun_transcode
+    fi
     rm -rf ${intermediatedir}/*
   fi
 done 3< pipefile

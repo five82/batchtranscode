@@ -48,6 +48,7 @@ Mapping the intermediate directory is only required if you are transcoding non M
 * ```-e stereobitrate="value"```  Specifies the bitrate for stereo audio tracks. The default value is ```"128k"```.
 * ```-e surrfiveonebitrate="value"```  Specifies the bitrate for 5.1 channel audio tracks. The default value is ```"384k"```.
 * ```-e surrsevenonebitrate="value"```  Specifies the bitrate for 7.1 channel audio tracks. The default value is ```"512k```".
+* ```-e enablelogging="value"```  Logs encoding job output to log files in the output directory. Options are ```"true"``` to enable and ```"false"``` to disable. The default value is ```"true"```.
 * ```-e slackurl="value"```  Set the value of this parameter to your Slack webhook URL if you want Slack notifications when video encodes start and complete.
 
 ### FFmpeg optional parameters
