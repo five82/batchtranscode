@@ -138,12 +138,20 @@ fun_transcode () {
         else
           vidcroparray[$k]=$(${encoderbinary} -ss "${cropscanarray[$k]}" -i "${input}" -f matroska -t "10" -an -sn -vf cropdetect=24:16:0 -y -crf 25 -preset ultrafast /dev/null 2>&1 | grep -o crop=.* | sort -b | uniq -c | sort -b | tail -n1 | grep -o crop=.*)
         fi
-        # Replace the first and third numeric values from cropdetect with the width of the video and zero.
-        # These are known values so we don't need to compare them.
+        # Round the video width off if it is close to 1920 or 3840 pixels to prevent unnecessary scaling.
+        # This will also increase the probability of cropscan matches.
         vidcroparray[$k]=${vidcroparray[$k]:5}
-        atemp="$(cut -d':' -f2 <<<${vidcroparray[$k]})"
-        btemp="$(cut -d':' -f4 <<<${vidcroparray[$k]})"
-        vidcroparray[$k]="crop=${width}:${atemp}:0:${btemp}"
+        atemp="$(cut -d':' -f1 <<<${vidcroparray[$k]})"
+        btemp="$(cut -d':' -f2 <<<${vidcroparray[$k]})"
+        ctemp="$(cut -d':' -f3 <<<${vidcroparray[$k]})"
+        dtemp="$(cut -d':' -f4 <<<${vidcroparray[$k]})"
+        if ((${atemp} >= 3830 && ${atemp} <= 3839)); then
+          ${atemp}=3840
+        fi
+        if ((${atemp} >= 1910 && ${atemp} <= 1919)); then
+          ${atemp}=1920
+        fi
+        vidcroparray[$k]="crop=${atemp}:${btemp}:${ctemp}:${dtemp}"
       done
       vidbasestring=${vidcroparray[0]}
       fun_vidcompare
