@@ -23,7 +23,7 @@ ADD . /app
 
 RUN \
 # Add required packages
-apk add --no-cache --update rsync && \
+apt install -y --no-install-recommends rsync && \
 # Set transcode script as executable
 chmod +x /app/transcode.sh
 
