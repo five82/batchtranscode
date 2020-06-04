@@ -23,6 +23,7 @@ ADD . /app
 
 RUN \
 # Add required packages
+apt update && \
 apt install -y --no-install-recommends rsync && \
 # Set transcode script as executable
 chmod +x /app/transcode.sh
