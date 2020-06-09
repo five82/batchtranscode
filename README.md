@@ -1,5 +1,7 @@
 ## batchtranscode Docker image
 
+*I'm stepping away from maintaining this for the foreseeable future due to time constraints. The project will be archived since any potential future development will probably focus on a different approach.* 
+
 Available on Docker Hub at https://hub.docker.com/r/five82/batchtranscode/
 
 ```docker pull five82/batchtranscode```
