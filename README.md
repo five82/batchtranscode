@@ -1,6 +1,11 @@
 ## batchtranscode Docker image
 
-*I'm stepping away from maintaining this for the foreseeable future due to time constraints. The project will be archived since any potential future development will probably focus on a different approach.* 
+*I'm stepping away from maintaining this for the foreseeable future due to time constraints. The project will be archived since any potential future development will probably focus on a different approach.*
+
+**HDR transcoding is not working correctly. Do not use this with HDR content. For further details, see the following issue:**
+
+https://github.com/five82/batchtranscode/issues/27
+
 
 Available on Docker Hub at https://hub.docker.com/r/five82/batchtranscode/
 
